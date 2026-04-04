@@ -5,6 +5,18 @@ const roles = [
   'Security Specialist',
   'Homelab Enthusiast',
 ];
+
+const terminalLines = [
+  { type: 'command', text: 'whoami' },
+  { type: 'output', text: 'christopher_kelley' },
+  { type: 'command', text: 'cat /etc/roles' },
+  { type: 'output', text: 'Systems Administrator' },
+  { type: 'output', text: 'Cloud Administrator' },
+  { type: 'output', text: 'Security Specialist' },
+  { type: 'output', text: 'Homelab Enthusiast' },
+  { type: 'command', text: './portfolio --init' },
+  { type: 'output', text: 'Ready.' },
+];
 ---
 
 <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -76,7 +88,7 @@ const roles = [
     </p>
 
     <!-- Social Links -->
-    <div class="flex items-center justify-center gap-6 mb-12 animate-fade-in-up" style="animation-delay: 0.5s;">
+    <div class="flex items-center justify-center gap-6 mb-8 animate-fade-in-up" style="animation-delay: 0.5s;">
       <a href="https://github.com/ghostkellz" target="_blank" rel="noopener" class="social-link" aria-label="GitHub">
         <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
           <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
@@ -95,13 +107,105 @@ const roles = [
     </div>
 
     <!-- CTA Button -->
-    <div class="animate-fade-in-up" style="animation-delay: 0.6s;">
+    <div class="animate-fade-in-up mb-12" style="animation-delay: 0.6s;">
       <a href="#about" class="btn btn-primary text-lg">
         Explore My Work
         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </a>
+    </div>
+
+    <!-- Terminal Widget -->
+    <div
+      class="animate-fade-in-up max-w-md mx-auto"
+      style="animation-delay: 0.7s;"
+      x-data={`{
+        lines: [],
+        currentLine: 0,
+        currentChar: 0,
+        showCursor: true,
+        allLines: ${JSON.stringify(terminalLines)},
+        done: false,
+
+        init() {
+          setInterval(() => this.showCursor = !this.showCursor, 530);
+          this.typeNext();
+        },
+
+        typeNext() {
+          if (this.currentLine >= this.allLines.length) {
+            this.done = true;
+            // Reset and loop after a pause
+            setTimeout(() => {
+              this.lines = [];
+              this.currentLine = 0;
+              this.currentChar = 0;
+              this.done = false;
+              this.typeNext();
+            }, 4000);
+            return;
+          }
+
+          const cmd = this.allLines[this.currentLine];
+          const isCommand = cmd.type === 'command';
+          const prefix = isCommand ? '$ ' : '> ';
+          const fullText = prefix + cmd.text;
+
+          if (!this.lines[this.currentLine]) {
+            this.lines[this.currentLine] = { text: '', type: cmd.type };
+          }
+
+          if (this.currentChar < fullText.length) {
+            this.lines[this.currentLine].text = fullText.substring(0, this.currentChar + 1);
+            this.currentChar++;
+            const speed = isCommand ? 60 + Math.random() * 40 : 25 + Math.random() * 20;
+            setTimeout(() => this.typeNext(), speed);
+          } else {
+            this.currentLine++;
+            this.currentChar = 0;
+            const pause = this.allLines[this.currentLine - 1].type === 'command' ? 300 : 100;
+            setTimeout(() => this.typeNext(), pause);
+          }
+        }
+      }`}
+    >
+      <!-- Terminal Window -->
+      <div class="text-left">
+        <!-- Terminal Header -->
+        <div class="bg-slate-dark/40 rounded-t-lg px-3 py-1.5 flex items-center gap-2">
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span>
+          </div>
+          <span class="text-slate/60 text-xs font-mono ml-2">chris@archlinux: ~</span>
+        </div>
+
+        <!-- Terminal Body -->
+        <div class="bg-navy-light/60 backdrop-blur-sm rounded-b-lg p-4 font-mono text-xs md:text-sm border border-slate-dark/20 border-t-0 min-h-[160px]">
+          <template x-for="(line, index) in lines" :key="index">
+            <div class="leading-relaxed">
+              <span
+                :class="line.type === 'command' ? 'text-accent' : 'text-slate-light/80'"
+                x-text="line.text"
+              ></span>
+            </div>
+          </template>
+
+          <!-- Cursor -->
+          <div x-show="!done">
+            <span x-show="lines.length === 0" class="text-accent">$ </span>
+            <span
+              x-bind:class="showCursor ? 'opacity-100' : 'opacity-0'"
+              class="inline-block w-2 h-3.5 bg-accent align-middle transition-opacity"
+            ></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scanline effect -->
+      <div class="absolute inset-0 pointer-events-none opacity-[0.02] rounded-lg bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.3)_2px,rgba(0,0,0,0.3)_4px)]"></div>
     </div>
   </div>
 

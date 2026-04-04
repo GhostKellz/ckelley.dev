@@ -1,0 +1,56 @@
+---
+// Floating section navigation for home page
+const sections = [
+  { id: 'hero', label: 'Top' },
+  { id: 'about', label: 'About' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'infrastructure', label: 'Homelab' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'contact', label: 'Contact' },
+];
+---
+
+<nav
+  class="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-3"
+  x-data="{
+    activeSection: 'hero',
+    init() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            this.activeSection = entry.target.id;
+          }
+        });
+      }, { threshold: 0.3 });
+
+      document.querySelectorAll('section[id]').forEach(section => {
+        observer.observe(section);
+      });
+    }
+  }"
+>
+  {sections.map((section) => (
+    <a
+      href={`#${section.id}`}
+      class="group flex items-center gap-3 justify-end"
+      :class={`activeSection === '${section.id}' ? 'active' : ''`}
+    >
+      <span
+        class="text-xs text-slate opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap"
+        :class={`activeSection === '${section.id}' ? 'opacity-100 text-accent' : ''`}
+      >
+        {section.label}
+      </span>
+      <span
+        class="w-2.5 h-2.5 rounded-full border-2 border-slate transition-all duration-200 group-hover:border-accent group-hover:scale-125"
+        :class={`activeSection === '${section.id}' ? 'bg-accent border-accent scale-125' : 'bg-transparent'`}
+      ></span>
+    </a>
+  ))}
+</nav>
+
+<style>
+  nav a:hover span:last-child {
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+  }
+</style>

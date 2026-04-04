@@ -1,10 +1,12 @@
 ---
+const pathname = Astro.url.pathname;
+
 const navLinks = [
-  { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#infrastructure', label: 'Homelab' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#contact', label: 'Contact' },
+  { href: '/', label: 'Home' },
+  { href: '/technologies', label: 'Technologies' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/education', label: 'Education' },
+  { href: '/#contact', label: 'Contact' },
 ];
 ---
 
@@ -16,27 +18,26 @@ const navLinks = [
 >
   <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
     <!-- Logo -->
-    <a href="#" class="text-accent font-mono text-lg font-semibold hover:text-accent-muted transition-colors">
+    <a href="/" class="text-accent font-mono text-lg font-semibold hover:text-accent-muted transition-colors">
       CK<span class="text-slate-light">.</span>
     </a>
 
     <!-- Desktop Nav -->
     <ul class="hidden md:flex items-center gap-8">
-      {navLinks.map((link, i) => (
+      {navLinks.map((link) => (
         <li>
           <a
             href={link.href}
-            class="text-slate hover:text-accent transition-colors font-mono text-sm"
+            class={`text-slate hover:text-accent transition-colors text-sm ${
+              pathname === link.href || (link.href !== '/#contact' && pathname.startsWith(link.href))
+                ? 'text-accent'
+                : ''
+            }`}
           >
-            <span class="text-accent">0{i + 1}.</span> {link.label}
+            {link.label}
           </a>
         </li>
       ))}
-      <li>
-        <a href="/resume.pdf" class="btn btn-primary text-sm py-2 px-4" target="_blank">
-          Resume
-        </a>
-      </li>
     </ul>
 
     <!-- Mobile Menu Button -->
@@ -67,22 +68,17 @@ const navLinks = [
     class="md:hidden bg-navy-light border-t border-slate-dark/30"
   >
     <ul class="flex flex-col items-center gap-6 py-8">
-      {navLinks.map((link, i) => (
+      {navLinks.map((link) => (
         <li>
           <a
             href={link.href}
             @click="open = false"
-            class="text-slate hover:text-accent transition-colors font-mono"
+            class="text-slate hover:text-accent transition-colors text-lg"
           >
-            <span class="text-accent">0{i + 1}.</span> {link.label}
+            {link.label}
           </a>
         </li>
       ))}
-      <li>
-        <a href="/resume.pdf" class="btn btn-primary" target="_blank">
-          Resume
-        </a>
-      </li>
     </ul>
   </div>
 </nav>

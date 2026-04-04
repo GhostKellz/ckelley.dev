@@ -1,0 +1,283 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Navigation from '@components/Navigation.astro';
+import '@styles/global.css';
+
+const certifications = [
+  { name: 'CompTIA Security+', code: 'SY0-701', year: '2024', color: '#c8102e' },
+  { name: 'CompTIA Network+', code: 'N10-008', year: '2024', color: '#c8102e' },
+  { name: 'CompTIA Linux+', code: 'XK0-005', year: '2024', color: '#c8102e' },
+  { name: 'Cisco CCNA', code: '200-301', year: '2024', color: '#1ba0d7' },
+];
+
+const courses = [
+  {
+    code: 'IT 489',
+    name: 'IT Capstone',
+    description: 'Capstone project integrating SD-WAN, Fortinet firewalls, Tailscale VPN, and Azure cloud infrastructure.',
+    highlights: ['F-Secure System Design', 'Enterprise Architecture', 'Security Framework'],
+  },
+  {
+    code: 'IT 420',
+    name: 'Enterprise Architecture',
+    description: 'Enterprise-level IT infrastructure design, network architecture, and security framework implementation.',
+    highlights: ['Network Design', 'SD-WAN Architecture', 'Security Planning'],
+  },
+  {
+    code: 'CS 360',
+    name: 'Mobile Development',
+    description: 'Android application development with Java, SQLite databases, and Material Design.',
+    highlights: ['Event Tracking App', 'Java/Android', 'SQLite'],
+  },
+  {
+    code: 'DAD 220',
+    name: 'Database Administration',
+    description: 'Relational database design, SQL optimization, and data modeling with MySQL.',
+    highlights: ['ERD Design', 'Complex SQL', 'Data Modeling'],
+  },
+  {
+    code: 'CS 250',
+    name: 'Software Development Lifecycle',
+    description: 'Agile methodology, user stories, test case design, and iterative development.',
+    highlights: ['Agile/Scrum', 'Test Cases', 'SDLC'],
+  },
+  {
+    code: 'IT 331',
+    name: 'Network Security',
+    description: 'Network security principles, firewall configuration, and threat mitigation.',
+    highlights: ['Firewalls', 'Threat Analysis', 'Security Policies'],
+  },
+];
+
+const capstoneHighlights = [
+  {
+    title: 'SD-WAN Architecture',
+    description: 'Designed multi-site SD-WAN topology with automatic failover between fiber and cable connections.',
+    icon: '🌐',
+  },
+  {
+    title: 'Fortinet Security',
+    description: 'Implemented FortiGate firewall rules, VPN tunnels, and threat protection policies.',
+    icon: '🛡️',
+  },
+  {
+    title: 'Zero-Trust VPN',
+    description: 'Deployed Tailscale mesh VPN for secure, identity-based access across all endpoints.',
+    icon: '🔐',
+  },
+  {
+    title: 'Azure Integration',
+    description: 'Integrated Microsoft 365 and Azure AD for identity management and cloud services.',
+    icon: '☁️',
+  },
+];
+---
+
+<BaseLayout title="Education | Christopher Kelley" description="Academic background, certifications, and capstone projects from SNHU Software Development program.">
+  <Navigation />
+
+  <main class="pt-24">
+    <!-- Hero -->
+    <section class="section pb-12">
+      <div class="container-narrow text-center">
+        <p class="heading-accent">Background</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-light mb-4">Education</h1>
+        <p class="text-slate max-w-2xl mx-auto">
+          B.S. in Software Development from Southern New Hampshire University,
+          complemented by industry certifications in security, networking, and Linux.
+        </p>
+      </div>
+    </section>
+
+    <!-- Degree -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="card p-8 md:p-10">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h2 class="text-2xl md:text-3xl font-bold text-slate-light">
+                Bachelor of Science
+              </h2>
+              <p class="text-xl text-accent">Software Development</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-light font-semibold">Southern New Hampshire University</p>
+              <p class="text-slate">2019 - 2023</p>
+            </div>
+          </div>
+
+          <p class="text-slate mb-6">
+            Comprehensive program covering software engineering principles, system design,
+            database administration, mobile development, and IT infrastructure. Coursework
+            bridged programming (Java, C++, Python) with practical IT operations experience.
+          </p>
+
+          <div class="flex flex-wrap gap-2">
+            {['Software Engineering', 'Database Design', 'Mobile Development', 'Network Security', 'Agile/SDLC', 'Enterprise Architecture'].map(skill => (
+              <span class="px-3 py-1 bg-navy border border-slate-dark/30 rounded-full text-sm text-slate">
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-8 text-center">
+          <span class="text-accent">⟨</span> Certifications <span class="text-accent">⟩</span>
+        </h2>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {certifications.map(cert => (
+            <div class="card text-center py-6">
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center"
+                style={`background-color: ${cert.color}20; border: 2px solid ${cert.color}`}
+              >
+                <svg class="w-6 h-6" style={`color: ${cert.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+              <h3 class="font-semibold text-slate-light mb-1">{cert.name}</h3>
+              <p class="text-accent text-sm font-mono">{cert.code}</p>
+              <p class="text-slate text-xs mt-1">{cert.year}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Capstone Project -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="text-center mb-10">
+          <p class="heading-accent">IT 489 Capstone</p>
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            F-Secure System Design
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Enterprise infrastructure design integrating modern networking, security,
+            and cloud technologies for a fictional security consulting firm.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-10">
+          {capstoneHighlights.map(item => (
+            <div class="card flex gap-4">
+              <div class="text-3xl">{item.icon}</div>
+              <div>
+                <h3 class="font-semibold text-slate-light mb-1">{item.title}</h3>
+                <p class="text-slate text-sm">{item.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div class="text-center">
+          <p class="text-slate text-sm mb-4">
+            Technologies: Fortinet FortiGate • Tailscale • Microsoft Azure • SD-WAN • Proxmox VE
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notable Courses -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-8 text-center">
+          <span class="text-accent">⟨</span> Notable Coursework <span class="text-accent">⟩</span>
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          {courses.map(course => (
+            <div class="card">
+              <div class="flex items-center gap-3 mb-2">
+                <span class="px-2 py-1 bg-accent/10 text-accent text-xs font-mono rounded">
+                  {course.code}
+                </span>
+                <h3 class="font-semibold text-slate-light">{course.name}</h3>
+              </div>
+              <p class="text-slate text-sm mb-3">{course.description}</p>
+              <div class="flex flex-wrap gap-2">
+                {course.highlights.map(h => (
+                  <span class="text-xs text-accent">• {h}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects from Coursework -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-8 text-center">
+          <span class="text-accent">⟨</span> Academic Projects <span class="text-accent">⟩</span>
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <a
+            href="https://github.com/GhostKellz/EventTrackingApp"
+            target="_blank"
+            rel="noopener"
+            class="card group text-center py-8 hover:border-accent/50"
+          >
+            <div class="text-4xl mb-4">📱</div>
+            <h3 class="font-semibold text-slate-light group-hover:text-accent transition-colors mb-2">
+              Event Tracking App
+            </h3>
+            <p class="text-slate text-sm mb-3">
+              Android app with SQLite database, user auth, and SMS notifications.
+            </p>
+            <span class="text-accent text-sm">CS 360 →</span>
+          </a>
+
+          <div class="card text-center py-8">
+            <div class="text-4xl mb-4">🗄️</div>
+            <h3 class="font-semibold text-slate-light mb-2">
+              Quantigration RMA Database
+            </h3>
+            <p class="text-slate text-sm mb-3">
+              Full ERD design with complex SQL queries for RMA tracking system.
+            </p>
+            <span class="text-slate text-sm">DAD 220</span>
+          </div>
+
+          <div class="card text-center py-8">
+            <div class="text-4xl mb-4">🏗️</div>
+            <h3 class="font-semibold text-slate-light mb-2">
+              SD-WAN Architecture
+            </h3>
+            <p class="text-slate text-sm mb-3">
+              Enterprise network design with failover, security, and cloud integration.
+            </p>
+            <span class="text-slate text-sm">IT 420</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section text-center">
+      <div class="container-narrow">
+        <p class="text-slate mb-6">
+          See my professional projects and open source work.
+        </p>
+        <a href="/projects" class="btn btn-primary">
+          View Projects →
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-8 text-center">
+    <p class="text-slate text-sm font-mono">
+      <a href="/" class="text-accent hover:underline">← Back to Home</a>
+    </p>
+  </footer>
+</BaseLayout>

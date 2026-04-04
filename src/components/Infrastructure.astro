@@ -18,7 +18,7 @@ const techStack = [
 ];
 ---
 
-<section id="infrastructure" class="section">
+<section id="infrastructure" class="section overflow-hidden">
   <div class="container-narrow">
     <div class="reveal text-center mb-12">
       <p class="heading-accent">03. Infrastructure</p>
@@ -29,8 +29,12 @@ const techStack = [
       </p>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 mb-12" style="transition-delay: 0.1s;">
+    <!-- Stats Grid with subtle parallax -->
+    <div
+      class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 parallax-element"
+      data-parallax-speed="0.05"
+      style="transition-delay: 0.1s;"
+    >
       {highlights.map(stat => (
         <div class="card text-center py-6">
           <span class="text-2xl mb-2 block">{stat.icon}</span>
@@ -40,9 +44,12 @@ const techStack = [
       ))}
     </div>
 
-    <!-- Diagram -->
-    <div class="reveal mb-12" style="transition-delay: 0.2s;">
-      <div class="card p-2 md:p-4 overflow-hidden">
+    <!-- Diagram with parallax effect -->
+    <div class="reveal mb-12 relative" style="transition-delay: 0.2s;">
+      <div
+        class="card p-2 md:p-4 overflow-hidden parallax-element will-change-transform"
+        data-parallax-speed="0.15"
+      >
         <div class="relative group">
           <img
             src="/infrastructure.png"
@@ -56,10 +63,28 @@ const techStack = [
           </div>
         </div>
       </div>
+
+      <!-- Floating decorative elements with different parallax speeds -->
+      <div
+        class="absolute -top-4 -left-4 w-20 h-20 border border-accent/20 rounded-lg parallax-element hidden lg:block"
+        data-parallax-speed="0.25"
+      ></div>
+      <div
+        class="absolute -bottom-4 -right-4 w-16 h-16 border border-accent/20 rounded-full parallax-element hidden lg:block"
+        data-parallax-speed="0.2"
+      ></div>
+      <div
+        class="absolute top-1/2 -right-8 w-2 h-2 bg-accent/40 rounded-full parallax-element hidden lg:block"
+        data-parallax-speed="0.35"
+      ></div>
+      <div
+        class="absolute top-1/4 -left-6 w-3 h-3 bg-accent/30 rounded-full parallax-element hidden lg:block"
+        data-parallax-speed="0.3"
+      ></div>
     </div>
 
-    <!-- Tech Stack -->
-    <div class="reveal" style="transition-delay: 0.3s;">
+    <!-- Tech Stack with subtle parallax -->
+    <div class="reveal parallax-element" data-parallax-speed="0.03" style="transition-delay: 0.3s;">
       <h3 class="text-lg font-semibold text-slate-light mb-4 text-center">
         <span class="text-accent">⟨</span> Core Technologies <span class="text-accent">⟩</span>
       </h3>
@@ -73,6 +98,68 @@ const techStack = [
     </div>
   </div>
 </section>
+
+<!-- Parallax Script -->
+<script>
+  // Parallax scroll effect
+  const initParallax = () => {
+    const parallaxElements = document.querySelectorAll('.parallax-element');
+    const section = document.getElementById('infrastructure');
+
+    if (!section || parallaxElements.length === 0) return;
+
+    // Check if on mobile - disable parallax for performance
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) return;
+
+    let ticking = false;
+
+    const updateParallax = () => {
+      const sectionRect = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      // Only apply parallax when section is in view
+      if (sectionRect.bottom < 0 || sectionRect.top > viewportHeight) {
+        ticking = false;
+        return;
+      }
+
+      // Calculate how far through the section we've scrolled
+      const scrollProgress = (viewportHeight - sectionRect.top) / (viewportHeight + sectionRect.height);
+
+      parallaxElements.forEach((el) => {
+        const speed = parseFloat((el as HTMLElement).dataset.parallaxSpeed || '0.1');
+        const yOffset = (scrollProgress - 0.5) * speed * 200;
+
+        (el as HTMLElement).style.transform = `translateY(${yOffset}px)`;
+      });
+
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Initial call
+    updateParallax();
+  };
+
+  // Initialize on DOM ready
+  document.addEventListener('DOMContentLoaded', initParallax);
+
+  // Re-initialize on resize (in case switching to/from mobile)
+  let resizeTimeout: number;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(initParallax, 250);
+  });
+</script>
 
 <!-- Lightbox for full-size image -->
 <div

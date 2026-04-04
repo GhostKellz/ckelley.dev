@@ -1,0 +1,229 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Navigation from '@components/Navigation.astro';
+import '@styles/global.css';
+
+interface Tech {
+  name: string;
+  description: string;
+}
+
+interface Category {
+  title: string;
+  icon: string;
+  description: string;
+  technologies: Tech[];
+}
+
+const categories: Category[] = [
+  {
+    title: 'Virtualization & Infrastructure',
+    icon: '🖥️',
+    description: 'Enterprise hypervisors and virtual desktop infrastructure.',
+    technologies: [
+      { name: 'Proxmox VE', description: 'Primary hypervisor for homelab and production workloads with clustering and HA' },
+      { name: 'Microsoft Hyper-V', description: 'Windows Server virtualization for enterprise environments' },
+      { name: 'Azure VDI', description: 'Azure Virtual Desktop deployments for remote workforce' },
+      { name: 'Windows 365 Cloud PC', description: 'Cloud-based Windows desktops for hybrid work scenarios' },
+      { name: 'LXC Containers', description: 'Lightweight Linux containers for efficient resource utilization' },
+      { name: 'VMware ESXi', description: 'Enterprise virtualization platform experience' },
+    ],
+  },
+  {
+    title: 'Networking & Security',
+    icon: '🛡️',
+    description: 'Firewalls, VPNs, and network infrastructure management.',
+    technologies: [
+      { name: 'Fortinet FortiGate', description: 'Next-gen firewalls with UTM, SSL inspection, and SD-WAN' },
+      { name: 'Tailscale', description: 'Zero-trust mesh VPN for secure remote access and site-to-site connectivity' },
+      { name: 'UniFi Network', description: 'Ubiquiti SDN controllers, switches, and access points' },
+      { name: 'SD-WAN', description: 'Software-defined WAN with automatic failover and traffic optimization' },
+      { name: 'pfSense/OPNsense', description: 'Open-source firewall and routing platforms' },
+      { name: 'WireGuard', description: 'Modern VPN protocol for high-performance tunnels' },
+    ],
+  },
+  {
+    title: 'Microsoft 365 & Azure',
+    icon: '☁️',
+    description: 'Cloud infrastructure, identity, and productivity at scale.',
+    technologies: [
+      { name: 'Microsoft 365 Admin', description: 'Tenant management, licensing, and user administration at scale' },
+      { name: 'Microsoft Intune', description: 'MDM/MAM for device enrollment, policies, and app deployment' },
+      { name: 'Azure AD / Entra ID', description: 'Identity management, conditional access, and SSO' },
+      { name: 'Azure Infrastructure', description: 'VMs, networking, storage, and hybrid connectivity' },
+      { name: 'Exchange Online', description: 'Email administration, mail flow rules, and migration' },
+      { name: 'SharePoint & OneDrive', description: 'Document management and collaboration platforms' },
+    ],
+  },
+  {
+    title: 'Email Security',
+    icon: '📧',
+    description: 'Advanced threat protection and email filtering solutions.',
+    technologies: [
+      { name: 'Proofpoint', description: 'Enterprise email security with threat intelligence' },
+      { name: 'Avanan', description: 'API-based email security for M365 and Google Workspace' },
+      { name: 'Microsoft Defender', description: 'Built-in M365 security with Safe Links and Safe Attachments' },
+      { name: 'DMARC/DKIM/SPF', description: 'Email authentication and anti-spoofing configuration' },
+    ],
+  },
+  {
+    title: 'MSP Stack & Documentation',
+    icon: '📋',
+    description: 'Business management, ticketing, and documentation platforms.',
+    technologies: [
+      { name: 'Hudu', description: 'Self-hosted IT documentation platform (current internal use)' },
+      { name: 'IT Glue', description: 'Cloud-based documentation and password management' },
+      { name: 'ConnectWise/Autotask', description: 'PSA platforms for ticketing and billing' },
+      { name: 'ScreenConnect', description: 'Self-hosted remote support behind Tailscale in Azure' },
+      { name: 'NinjaRMM', description: 'Remote monitoring and management platform' },
+      { name: 'Datto/Veeam', description: 'Backup and disaster recovery solutions' },
+    ],
+  },
+  {
+    title: 'DevOps & Self-Hosting',
+    icon: '🐳',
+    description: 'Containerization, CI/CD, and self-hosted infrastructure.',
+    technologies: [
+      { name: 'Docker', description: 'Container runtime for all self-hosted services' },
+      { name: 'Docker Compose', description: 'Multi-container application orchestration' },
+      { name: 'Self-Hosted CI Runners', description: 'GitLab and GitHub Actions runners on own infrastructure' },
+      { name: 'NGINX', description: 'Reverse proxy, load balancing, and SSL termination' },
+      { name: 'Traefik', description: 'Cloud-native reverse proxy with automatic SSL' },
+      { name: 'Portainer', description: 'Container management UI for Docker environments' },
+    ],
+  },
+  {
+    title: 'AI & Automation',
+    icon: '🤖',
+    description: 'Local AI infrastructure and automation tooling.',
+    technologies: [
+      { name: 'Ollama', description: 'Local LLM hosting for private AI workloads' },
+      { name: 'Bash/Zsh', description: 'Shell scripting for automation and system administration' },
+      { name: 'n8n', description: 'Workflow automation and integration platform' },
+      { name: 'Ansible', description: 'Infrastructure as code and configuration management' },
+      { name: 'Terraform', description: 'Cloud infrastructure provisioning' },
+      { name: 'PowerShell', description: 'Windows automation and scripting' },
+    ],
+  },
+  {
+    title: 'Web Hosting & DNS',
+    icon: '🌐',
+    description: 'Domain management, web servers, and CDN.',
+    technologies: [
+      { name: 'Cloudflare', description: 'DNS, CDN, DDoS protection, and zero-trust tunnels' },
+      { name: 'NGINX', description: 'Web server for static sites and reverse proxy' },
+      { name: 'HestiaCP', description: 'Open-source web hosting control panel' },
+      { name: 'Let\'s Encrypt', description: 'Automated SSL certificate management' },
+      { name: 'Astro', description: 'Modern static site generator (this site!)' },
+      { name: 'WordPress', description: 'CMS management and migration' },
+    ],
+  },
+  {
+    title: 'Development Tools',
+    icon: '⌨️',
+    description: 'Editor, version control, and development environment.',
+    technologies: [
+      { name: 'Neovim', description: 'Primary editor with custom Lua configuration' },
+      { name: 'Git', description: 'Version control for all projects' },
+      { name: 'GitHub', description: 'Code hosting and CI/CD workflows' },
+      { name: 'Rust', description: 'Systems programming for CLI tools' },
+      { name: 'Zig', description: 'Low-level systems programming and libraries' },
+      { name: 'Python', description: 'Scripting and automation' },
+    ],
+  },
+];
+---
+
+<BaseLayout title="Technologies | Christopher Kelley" description="IT and MSP technology stack - virtualization, Microsoft 365, networking, security, and DevOps expertise.">
+  <Navigation />
+
+  <main class="pt-24">
+    <!-- Hero -->
+    <section class="section pb-12">
+      <div class="container-narrow text-center">
+        <p class="heading-accent">Expertise</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-light mb-4">Technologies</h1>
+        <p class="text-slate max-w-2xl mx-auto">
+          From enterprise Microsoft 365 deployments to self-hosted infrastructure,
+          here's the technology stack I work with daily to deliver IT solutions.
+        </p>
+      </div>
+    </section>
+
+    <!-- Quick Stats -->
+    <section class="section py-12 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div class="card py-6">
+            <p class="text-3xl font-bold text-accent mb-1">50+</p>
+            <p class="text-slate text-sm">Technologies</p>
+          </div>
+          <div class="card py-6">
+            <p class="text-3xl font-bold text-accent mb-1">5+</p>
+            <p class="text-slate text-sm">Years Experience</p>
+          </div>
+          <div class="card py-6">
+            <p class="text-3xl font-bold text-accent mb-1">100s</p>
+            <p class="text-slate text-sm">M365 Users Managed</p>
+          </div>
+          <div class="card py-6">
+            <p class="text-3xl font-bold text-accent mb-1">24/7</p>
+            <p class="text-slate text-sm">Homelab Uptime</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technology Categories -->
+    {categories.map((category, index) => (
+      <section class={`section py-16 ${index % 2 === 0 ? '' : 'bg-navy-light/30'}`}>
+        <div class="container-narrow">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="text-3xl">{category.icon}</span>
+            <div>
+              <h2 class="text-xl md:text-2xl font-bold text-slate-light">
+                {category.title}
+              </h2>
+              <p class="text-slate text-sm">{category.description}</p>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {category.technologies.map(tech => (
+              <div class="card py-4 px-5 hover:border-accent/30">
+                <h3 class="font-semibold text-slate-light text-sm mb-1">{tech.name}</h3>
+                <p class="text-slate text-xs leading-relaxed">{tech.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <!-- CTA -->
+    <section class="section text-center">
+      <div class="container-narrow">
+        <h2 class="text-2xl font-bold text-slate-light mb-4">Need IT Consulting?</h2>
+        <p class="text-slate mb-6 max-w-xl mx-auto">
+          Whether it's Microsoft 365 migration, infrastructure design, or security hardening,
+          I can help your business succeed.
+        </p>
+        <div class="flex justify-center gap-4">
+          <a href="/#contact" class="btn btn-primary">
+            Get In Touch
+          </a>
+          <a href="/projects" class="btn btn-secondary">
+            View Projects
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-8 text-center">
+    <p class="text-slate text-sm font-mono">
+      <a href="/" class="text-accent hover:underline">← Back to Home</a>
+    </p>
+  </footer>
+</BaseLayout>
