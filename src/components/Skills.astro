@@ -1,0 +1,109 @@
+---
+interface Skill {
+  name: string;
+  icon: string;
+}
+
+interface Category {
+  title: string;
+  skills: Skill[];
+}
+
+const categories: Category[] = [
+  {
+    title: 'Systems & Infrastructure',
+    skills: [
+      { name: 'Proxmox VE', icon: '/logos/proxmox.png' },
+      { name: 'Docker', icon: '/logos/docker.svg' },
+      { name: 'NGINX', icon: '/logos/nginx.svg' },
+      { name: 'Vim', icon: '/logos/vim.png' },
+    ],
+  },
+  {
+    title: 'Languages & Development',
+    skills: [
+      { name: 'Rust', icon: '/logos/rust.svg' },
+      { name: 'Zig', icon: '/logos/zig.png' },
+      { name: 'Python', icon: '/logos/python.png' },
+      { name: 'Go', icon: '/logos/go.svg' },
+    ],
+  },
+  {
+    title: 'Cloud & Enterprise',
+    skills: [
+      { name: 'Microsoft Azure', icon: '/logos/azure.png' },
+      { name: 'Microsoft 365', icon: '/logos/m365.png' },
+      { name: 'Cloudflare', icon: '/logos/cloudflare.png' },
+      { name: 'Tailscale', icon: '/logos/tailscale.png' },
+    ],
+  },
+  {
+    title: 'Security & Networking',
+    skills: [
+      { name: 'Fortinet', icon: '/logos/fortinet.jpg' },
+      { name: 'UniFi', icon: '/logos/unifi.png' },
+      { name: 'Linux Networking', icon: '/logos/linux.png' },
+      { name: 'Server Hardening', icon: '/logos/linux.png' },
+    ],
+  },
+  {
+    title: 'Operating Systems',
+    skills: [
+      { name: 'Linux', icon: '/logos/linux.png' },
+      { name: 'Windows', icon: '/logos/windows.png' },
+      { name: 'macOS', icon: '/logos/macos.png' },
+    ],
+  },
+  {
+    title: 'Linux Distributions',
+    skills: [
+      { name: 'Arch Linux', icon: '/logos/arch.png' },
+      { name: 'Ubuntu', icon: '/logos/ubuntu.png' },
+      { name: 'Debian', icon: '/logos/debian.svg' },
+      { name: 'Fedora', icon: '/logos/fedora.svg' },
+    ],
+  },
+];
+---
+
+<section id="skills" class="section bg-navy-light/30">
+  <div class="container-narrow">
+    <div class="reveal text-center mb-16">
+      <p class="heading-accent">02. Skills</p>
+      <h2 class="heading">Technologies I Work With</h2>
+      <p class="text-slate max-w-2xl mx-auto">
+        From bare-metal servers to cloud infrastructure, here's the tech stack I use to build and manage modern systems.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      {categories.map((category, catIndex) => (
+        <div class="reveal" style={`transition-delay: ${catIndex * 0.1}s;`}>
+          <h3 class="text-lg font-semibold text-slate-light mb-4 flex items-center gap-2">
+            <span class="text-accent">⟨</span>
+            {category.title}
+            <span class="text-accent">⟩</span>
+          </h3>
+
+          <div class="grid grid-cols-2 gap-3">
+            {category.skills.map(skill => (
+              <div class="card flex items-center gap-3 py-4 px-4 group cursor-default">
+                <div class="w-10 h-10 flex items-center justify-center bg-navy rounded-lg p-2 group-hover:bg-accent/10 transition-colors">
+                  <img
+                    src={skill.icon}
+                    alt={skill.name}
+                    class="w-6 h-6 object-contain"
+                    loading="lazy"
+                  />
+                </div>
+                <span class="text-slate-light text-sm font-medium group-hover:text-accent transition-colors">
+                  {skill.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

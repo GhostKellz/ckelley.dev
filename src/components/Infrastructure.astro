@@ -1,0 +1,93 @@
+---
+const highlights = [
+  { label: 'Proxmox Nodes', value: '7+', icon: '🖥️' },
+  { label: 'VMs & Containers', value: '50+', icon: '📦' },
+  { label: 'Storage (TB)', value: '100+', icon: '💾' },
+  { label: 'Uptime', value: '99.9%', icon: '⚡' },
+];
+
+const techStack = [
+  'Proxmox VE Cluster',
+  'Veeam Backup & Replication',
+  'Synology NAS',
+  'UniFi Networking',
+  'FortiGate Firewalls',
+  'Tailscale Mesh VPN',
+  'Docker & Kubernetes',
+  'Terraform & Ansible',
+];
+---
+
+<section id="infrastructure" class="section">
+  <div class="container-narrow">
+    <div class="reveal text-center mb-12">
+      <p class="heading-accent">03. Infrastructure</p>
+      <h2 class="heading">Homelab & Production Environment</h2>
+      <p class="text-slate max-w-2xl mx-auto">
+        I maintain a production-grade homelab environment that serves as both a learning platform
+        and a real-world testing ground for enterprise solutions.
+      </p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 mb-12" style="transition-delay: 0.1s;">
+      {highlights.map(stat => (
+        <div class="card text-center py-6">
+          <span class="text-2xl mb-2 block">{stat.icon}</span>
+          <p class="text-3xl font-bold text-accent mb-1">{stat.value}</p>
+          <p class="text-slate text-sm">{stat.label}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Diagram -->
+    <div class="reveal mb-12" style="transition-delay: 0.2s;">
+      <div class="card p-2 md:p-4 overflow-hidden">
+        <div class="relative group">
+          <img
+            src="/infrastructure.png"
+            alt="Homelab Infrastructure Diagram"
+            class="w-full h-auto rounded-lg cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+            loading="lazy"
+          />
+          <!-- Overlay on hover -->
+          <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-end justify-center pb-6">
+            <span class="text-accent font-mono text-sm">Click to expand</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="reveal" style="transition-delay: 0.3s;">
+      <h3 class="text-lg font-semibold text-slate-light mb-4 text-center">
+        <span class="text-accent">⟨</span> Core Technologies <span class="text-accent">⟩</span>
+      </h3>
+      <div class="flex flex-wrap justify-center gap-3">
+        {techStack.map(tech => (
+          <span class="px-4 py-2 bg-navy-light border border-slate-dark/30 rounded-full text-slate text-sm font-mono hover:border-accent/50 hover:text-accent transition-colors cursor-default">
+            {tech}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox for full-size image -->
+<div
+  x-data="{ open: false }"
+  x-on:keydown.escape.window="open = false"
+>
+  <!-- Trigger - make the diagram clickable -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const diagram = document.querySelector('#infrastructure img');
+      if (diagram) {
+        diagram.addEventListener('click', () => {
+          window.open('/infrastructure.png', '_blank');
+        });
+      }
+    });
+  </script>
+</div>

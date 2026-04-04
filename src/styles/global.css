@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-navy text-slate-light;
+  }
+
+  ::selection {
+    @apply bg-accent/30 text-slate-light;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-navy-dark;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-dark rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate;
+  }
+}
+
+@layer components {
+  .section {
+    @apply py-20 md:py-28 px-6;
+  }
+
+  .container-narrow {
+    @apply max-w-5xl mx-auto;
+  }
+
+  .heading {
+    @apply text-3xl md:text-4xl font-bold text-slate-light mb-4;
+  }
+
+  .heading-accent {
+    @apply text-accent font-mono text-sm md:text-base mb-2;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-md font-medium transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply border-2 border-accent text-accent hover:bg-accent/10;
+  }
+
+  .btn-secondary {
+    @apply bg-accent text-navy-dark hover:bg-accent-muted;
+  }
+
+  .card {
+    @apply bg-navy-light border border-slate-dark/30 rounded-lg p-6 transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply border-accent/50 shadow-lg shadow-accent/5 -translate-y-1;
+  }
+
+  .link {
+    @apply text-accent hover:underline underline-offset-4;
+  }
+
+  .social-link {
+    @apply text-slate hover:text-accent transition-colors duration-300;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent to-aqua-light bg-clip-text text-transparent;
+  }
+
+  .glow {
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.2);
+  }
+}
+
+/* Typing cursor animation */
+.cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1.2em;
+  background-color: #64ffda;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Particle canvas styles */
+#particles-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

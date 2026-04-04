@@ -1,0 +1,68 @@
+---
+
+---
+
+<section id="about" class="section">
+  <div class="container-narrow">
+    <div class="reveal">
+      <p class="heading-accent">01. About Me</p>
+      <h2 class="heading">A Bit About Myself</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-12 items-start">
+      <!-- Text Content -->
+      <div class="md:col-span-2 space-y-4 reveal" style="transition-delay: 0.1s;">
+        <p class="text-slate leading-relaxed">
+          I'm a Systems Administrator and DevOps Engineer with a passion for building secure, automated infrastructure.
+          Currently, I'm the <span class="text-accent">Owner of CK Technology LLC</span> and
+          <span class="text-accent">Systems Administrator at Resolve Technology</span>, where I focus on delivering
+          enterprise-grade IT solutions for businesses of all sizes.
+        </p>
+
+        <p class="text-slate leading-relaxed">
+          My journey in tech started with a curiosity for how systems work under the hood. That curiosity evolved into
+          a career spanning systems administration, network security, cloud infrastructure, and software development.
+          I hold a <span class="text-accent">B.S. in Software Development from SNHU</span> and maintain certifications
+          including CompTIA Security+, Network+, Linux+, and Cisco CCNA.
+        </p>
+
+        <p class="text-slate leading-relaxed">
+          When I'm not managing infrastructure or writing code, you'll find me exploring new technologies,
+          contributing to open-source projects, or diving deep into Rust and Zig development. I believe in
+          building systems that are not just functional, but elegant and maintainable.
+        </p>
+
+        <p class="text-slate leading-relaxed">
+          Here are some technologies I've been working with recently:
+        </p>
+
+        <ul class="grid grid-cols-2 gap-2 font-mono text-sm">
+          {['Arch Linux', 'Proxmox VE', 'Docker/Podman', 'Rust', 'Zig', 'Azure/M365', 'FortiGate', 'Terraform'].map(tech => (
+            <li class="flex items-center gap-2 text-slate">
+              <span class="text-accent">▹</span> {tech}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Profile Image -->
+      <div class="reveal flex justify-center md:justify-end" style="transition-delay: 0.2s;">
+        <div class="relative group">
+          <!-- Decorative border -->
+          <div class="absolute inset-0 border-2 border-accent rounded-lg translate-x-4 translate-y-4 transition-transform group-hover:translate-x-2 group-hover:translate-y-2"></div>
+
+          <!-- Image container -->
+          <div class="relative w-64 h-64 md:w-72 md:h-72 rounded-lg overflow-hidden bg-accent/10">
+            <img
+              src="/profile.jpg"
+              alt="Christopher Kelley"
+              class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+            />
+            <!-- Overlay -->
+            <div class="absolute inset-0 bg-accent/20 hover:bg-transparent transition-colors duration-300"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
