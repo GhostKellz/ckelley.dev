@@ -5,17 +5,6 @@ const highlights = [
   { label: 'Storage (TB)', value: '100+', icon: '💾' },
   { label: 'Uptime', value: '99.9%', icon: '⚡' },
 ];
-
-const techStack = [
-  'Proxmox VE Cluster',
-  'Veeam Backup & Replication',
-  'Synology NAS',
-  'UniFi Networking',
-  'FortiGate Firewalls',
-  'Tailscale Mesh VPN',
-  'Docker & Kubernetes',
-  'Terraform & Ansible',
-];
 ---
 
 <section id="infrastructure" class="section overflow-hidden">
@@ -24,8 +13,9 @@ const techStack = [
       <p class="heading-accent">03. Infrastructure</p>
       <h2 class="heading">Homelab & Production Environment</h2>
       <p class="text-slate max-w-2xl mx-auto">
-        I maintain a production-grade homelab environment that serves as both a learning platform
-        and a real-world testing ground for enterprise solutions.
+        I run a production-grade homelab that doubles as a learning platform and a real-world
+        testing ground for enterprise solutions — from a Proxmox cluster to a full
+        observability and security stack.
       </p>
     </div>
 
@@ -44,57 +34,11 @@ const techStack = [
       ))}
     </div>
 
-    <!-- Diagram with parallax effect -->
-    <div class="reveal mb-12 relative" style="transition-delay: 0.2s;">
-      <div
-        class="card p-2 md:p-4 overflow-hidden parallax-element will-change-transform"
-        data-parallax-speed="0.15"
-      >
-        <div class="relative group">
-          <img
-            src="/infrastructure.png"
-            alt="Homelab Infrastructure Diagram"
-            class="w-full h-auto rounded-lg cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
-            loading="lazy"
-          />
-          <!-- Overlay on hover -->
-          <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-end justify-center pb-6">
-            <span class="text-accent font-mono text-sm">Click to expand</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating decorative elements with different parallax speeds -->
-      <div
-        class="absolute -top-4 -left-4 w-20 h-20 border border-accent/20 rounded-lg parallax-element hidden lg:block"
-        data-parallax-speed="0.25"
-      ></div>
-      <div
-        class="absolute -bottom-4 -right-4 w-16 h-16 border border-accent/20 rounded-full parallax-element hidden lg:block"
-        data-parallax-speed="0.2"
-      ></div>
-      <div
-        class="absolute top-1/2 -right-8 w-2 h-2 bg-accent/40 rounded-full parallax-element hidden lg:block"
-        data-parallax-speed="0.35"
-      ></div>
-      <div
-        class="absolute top-1/4 -left-6 w-3 h-3 bg-accent/30 rounded-full parallax-element hidden lg:block"
-        data-parallax-speed="0.3"
-      ></div>
-    </div>
-
-    <!-- Tech Stack with subtle parallax -->
-    <div class="reveal parallax-element" data-parallax-speed="0.03" style="transition-delay: 0.3s;">
-      <h3 class="text-lg font-semibold text-slate-light mb-4 text-center">
-        <span class="text-accent">⟨</span> Core Technologies <span class="text-accent">⟩</span>
-      </h3>
-      <div class="flex flex-wrap justify-center gap-3">
-        {techStack.map(tech => (
-          <span class="px-4 py-2 bg-navy-light border border-slate-dark/30 rounded-full text-slate text-sm font-mono hover:border-accent/50 hover:text-accent transition-colors cursor-default">
-            {tech}
-          </span>
-        ))}
-      </div>
+    <!-- CTA into the Lab deep-dive -->
+    <div class="reveal text-center" style="transition-delay: 0.2s;">
+      <a href="/lab" class="btn btn-primary">
+        Explore the Lab →
+      </a>
     </div>
   </div>
 </section>
@@ -160,21 +104,3 @@ const techStack = [
     resizeTimeout = setTimeout(initParallax, 250);
   });
 </script>
-
-<!-- Lightbox for full-size image -->
-<div
-  x-data="{ open: false }"
-  x-on:keydown.escape.window="open = false"
->
-  <!-- Trigger - make the diagram clickable -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const diagram = document.querySelector('#infrastructure img');
-      if (diagram) {
-        diagram.addEventListener('click', () => {
-          window.open('/infrastructure.png', '_blank');
-        });
-      }
-    });
-  </script>
-</div>

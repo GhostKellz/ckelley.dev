@@ -6,6 +6,8 @@ const navLinks = [
   { href: '/technologies', label: 'Technologies' },
   { href: '/projects', label: 'Projects' },
   { href: '/education', label: 'Education' },
+  { href: '/lab', label: 'Lab' },
+  { href: '/ai', label: 'AI' },
   { href: '/#contact', label: 'Contact' },
 ];
 ---
@@ -13,7 +15,7 @@ const navLinks = [
 <nav
   x-data="{ scrolled: false, open: false }"
   x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 50 })"
-  :class="scrolled ? 'bg-navy/95 backdrop-blur-sm shadow-lg' : 'bg-transparent'"
+  :class="scrolled ? 'bg-navy/95 backdrop-blur-xs shadow-lg' : 'bg-transparent'"
   class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
 >
   <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

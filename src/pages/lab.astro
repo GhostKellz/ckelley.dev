@@ -1,0 +1,568 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Navigation from '@components/Navigation.astro';
+import '@styles/global.css';
+
+const highlights = [
+  { label: 'Proxmox Nodes', value: '9+', icon: '🖥️' },
+  { label: 'VMs & Containers', value: '120+', icon: '📦' },
+  { label: 'Storage (TB)', value: '100+', icon: '💾' },
+  { label: 'Uptime', value: '99.9%', icon: '⚡' },
+];
+
+interface Card {
+  title: string;
+  icon: string;
+  body: string;
+}
+
+const virtualization: Card[] = [
+  {
+    title: 'Proxmox VE Cluster',
+    icon: '🧮',
+    body: 'Corosync quorum across mixed-silicon nodes with HA failover, so guests live-migrate and restart automatically when a node drops. Firewalling is enforced at the datacenter, node, and guest level for zero-trust between tenants.',
+  },
+  {
+    title: 'ZFS Storage',
+    icon: '🗄️',
+    body: 'NVMe mirrors and RAIDz2 pools with zstd compression, ARC sized to each box, and scheduled scrubs for bit-rot detection. Space-efficient snapshots feed the backup chain and give instant rollback.',
+  },
+  {
+    title: 'Software-Defined Networking',
+    icon: '🕸️',
+    body: 'VLAN-aware bridges, LACP bonds, and VXLAN/EVPN overlays segment tenants without touching a physical port. Jumbo frames keep east-west traffic efficient across the cluster.',
+  },
+  {
+    title: 'VFIO GPU Passthrough',
+    icon: '🎮',
+    body: 'IOMMU groups isolated and GPUs bound to vfio-pci on q35/OVMF guests, passing a full RTX 4090 into a VM as a dedicated compute node at near-bare-metal performance.',
+  },
+  {
+    title: 'Cloud-Init & LXC',
+    icon: '📜',
+    body: 'Repeatable VM and container provisioning with cloud-init user-data, SSH key injection, and templated networking, so nodes come up identical, disposable, and ready to rebuild from scratch.',
+  },
+  {
+    title: 'GitOps & IaC',
+    icon: '⚙️',
+    body: 'Node configs, SDN definitions, backup policies, and Prometheus targets live in version control. Terraform and Ansible turn intent into infrastructure; nothing critical exists only in someone’s head.',
+  },
+];
+
+const edgeSecurity: Card[] = [
+  {
+    title: 'SD-WAN: Failover & Load Balancing',
+    icon: '🛰️',
+    body: 'FortiGate SD-WAN bonds fiber and cable into one resilient pipe, where health-check failover keeps the Proxmox cluster reachable if a WAN drops, while weighted ECMP and SLA-based steering (latency, jitter, loss) load-balance traffic so VoIP and critical apps always ride the best link.',
+  },
+  {
+    title: 'UTM Inspection',
+    icon: '🛡️',
+    body: 'Layered IPS sensors, web and DNS filtering, and SSL deep inspection on a FortiGate 90G, enriched with external threat feeds, including public blocklists (Feodo, Spamhaus, TOR exit nodes) plus a self-hosted CrowdSec mirror pulled in as a live threat feed, all auto-loaded as block objects for real-time IP blocking.',
+  },
+  {
+    title: 'Tailscale Mesh VPN',
+    icon: '🔗',
+    body: 'All VPN needs run on a Tailscale mesh, so services are reachable peer-to-peer without exposing a single port to the internet. A self-hosted Headscale control server with Tailscale clients rounds out a dev/test setup for experimenting with the control plane.',
+  },
+  {
+    title: 'HA & Automation Stitches',
+    icon: '🤖',
+    body: 'Active-passive HA with session pickup keeps the edge online through failover. Automation stitches fire on security events, scheduled backups, and brute-force attempts, auto-banning offenders and alerting to webhooks.',
+  },
+];
+
+// Why the observability/security stack is built the way it is
+const designChoices: Card[] = [
+  {
+    title: 'Prometheus + Exporters',
+    icon: '📈',
+    body: 'Pull-based metrics with node_exporter on every host and a Proxmox pve-exporter for cluster, VM, and storage stats. File-based service discovery keeps targets declarative and version-controlled, so I can add a node by editing a file and hot-reloading, with no restart.',
+  },
+  {
+    title: 'Wazuh SIEM/XDR',
+    icon: '🛰️',
+    body: 'Agents ship logs, file-integrity events, and security telemetry to a central Wazuh manager for correlation, compliance reporting, and MITRE-mapped threat detection across the fleet.',
+  },
+  {
+    title: 'CrowdSec (Distributed)',
+    icon: '🧱',
+    body: 'Crowd-sourced intrusion prevention parses logs across hosts and edge, sharing signals so a malicious IP seen on one node is blocked everywhere via bouncers, and its blocklist is mirrored into the FortiGate as an external threat feed, enforcing fleet-wide detections right at the perimeter.',
+  },
+  {
+    title: 'Centralized Logging',
+    icon: '🪵',
+    body: 'syslog-ng ingests FortiGate, Proxmox, and Linux logs and pushes to Loki with low-cardinality labels, and the details are parsed at query time with LogQL, keeping streams healthy and searches fast.',
+  },
+  {
+    title: 'Tailscale-Only Access',
+    icon: '🔒',
+    body: 'Dashboards never touch the public internet. A reverse proxy terminates TLS and binds its vhosts to the tailnet interface only, so portals are reachable solely over the Tailscale mesh.',
+  },
+  {
+    title: 'Grafana Dashboards',
+    icon: '📊',
+    body: 'A single pane of glass over Prometheus, Loki, and Wazuh, covering node health, cluster capacity, firewall, and security alerts, with Alertmanager routing actionable notifications.',
+  },
+];
+
+const backup: Card[] = [
+  {
+    title: 'BTRFS + Snapper',
+    icon: '🧬',
+    body: 'The Arch dev workstation runs BTRFS with Snapper, taking automatic, timeline-based snapshots on every package transaction that give instant, bootable rollback the moment an update misbehaves.',
+  },
+  {
+    title: 'Restic',
+    icon: '📦',
+    body: 'The general-purpose workhorse for encrypted, deduplicated backups of everything that doesn’t fit a hypervisor or NAS. Config, app data, and assorted hosts sync on a schedule to S3-compatible storage with versioned, point-in-time restores.',
+  },
+  {
+    title: 'ZFS + Proxmox Backup Server',
+    icon: '🧷',
+    body: 'The Proxmox cluster is built on ZFS, with scheduled replication on a 16-hour cycle for warm copies between nodes, plus incremental, deduplicated, encrypted backups to Proxmox Backup Server, while cloud nodes back up in pull-mode over one-time tokens.',
+  },
+  {
+    title: 'Veeam Backup & Replication',
+    icon: '♻️',
+    body: 'Business-grade protection for VMs, Microsoft 365 tenants, and physical workloads, with application-aware processing and regularly tested, verified restore points so recovery is proven, not assumed.',
+  },
+  {
+    title: 'Synology NAS (DSM)',
+    icon: '🗃️',
+    body: 'A Synology NAS running DSM protects SaaS data with Active Backup, covering a Microsoft 365 tenant and a personal Google Workspace tenant, then chains HyperBackup to a Wasabi bucket for an encrypted offsite copy of the cloud workloads.',
+  },
+  {
+    title: 'Wasabi S3 (Offsite)',
+    icon: '☁️',
+    body: 'An S3-compatible cold tier holds encrypted offsite copies, the “1” in 3-2-1. Geographically separate from the cluster, it survives a site-level loss that local snapshots and on-prem backups can’t.',
+  },
+];
+
+const techStack = [
+  'Proxmox VE',
+  'KVM / QEMU',
+  'ZFS & BTRFS',
+  'VFIO Passthrough',
+  'FortiGate SD-WAN',
+  'Tailscale / Headscale',
+  'nftables',
+  'TPM2 + LUKS',
+  'Docker',
+  'Terraform & Ansible',
+  'Proxmox Backup Server',
+  'Veeam · Wasabi S3',
+];
+---
+
+<BaseLayout title="Lab | Christopher Kelley" description="Homelab and production infrastructure deep-dive: Linux end to end, a nine-node Proxmox cluster, FortiGate edge security, full observability with Prometheus, Grafana, Wazuh, and CrowdSec, and layered backup across Proxmox Backup Server, Veeam, and Wasabi S3.">
+  <Navigation />
+
+  <main class="pt-24">
+    <!-- Hero -->
+    <section class="section pb-12">
+      <div class="container-narrow text-center">
+        <p class="heading-accent">Homelab & Production</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-light mb-4">The Lab</h1>
+        <p class="text-slate max-w-2xl mx-auto">
+          A production-grade environment that powers real workloads and doubles as a proving
+          ground for enterprise solutions, spanning virtualization, networking, observability,
+          security, and disaster recovery, all designed, built, and operated end to end.
+        </p>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section py-12 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          {highlights.map(stat => (
+            <div class="card py-6">
+              <span class="text-2xl mb-2 block">{stat.icon}</span>
+              <p class="text-3xl font-bold text-accent mb-1">{stat.value}</p>
+              <p class="text-slate text-sm">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Built on Linux (prose) -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Built on Linux, End to End <span class="text-accent">⟩</span>
+          </h2>
+        </div>
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl">
+          <p>
+            Everything in the lab runs on Linux, and almost none of it is point and click. I build and
+            tune the hosts by hand, mostly because that is the only way I actually understand what they
+            are doing once they are in production. Services and scheduled jobs run as
+            <span class="text-slate-light">systemd</span> units and timers instead of a pile of cron
+            one-offs, host firewalling is handled with <span class="text-slate-light">nftables</span>,
+            and I lean on <span class="text-slate-light">sysctl</span> and kernel tuning to get the
+            network and storage throughput I want out of each box. When something misbehaves I would
+            much rather open <span class="text-slate-light">journald</span> and trace it back to the
+            real cause than reboot and hope it clears up on its own, and that habit carries across every
+            machine I run.
+          </p>
+          <p>
+            Storage is where a lot of that care goes. Most of my pools live on
+            <span class="text-slate-light">ZFS and BTRFS</span>, and I lean on their snapshots
+            constantly, both as a safety net I take before any risky change and as the backbone of the
+            replication I run between nodes, so a bad upgrade or a fat-fingered config file is a
+            rollback away instead of a rebuild. On the machines that actually hold sensitive data I run
+            full-disk encryption with <span class="text-slate-light">LUKS</span>, and where the hardware
+            supports it I tie the keys into the <span class="text-slate-light">TPM</span> so a trusted
+            box can unlock cleanly on boot without me typing a passphrase into every console. That same
+            mindset shows up in how I provision, because <span class="text-slate-light">cloud-init</span>
+            and a set of golden templates mean a new VM or container comes up configured the same way
+            every time, which keeps the whole fleet predictable instead of a collection of one-off
+            machines that nobody can reproduce later.
+          </p>
+          <p>
+            Virtualization is all <span class="text-slate-light">KVM and QEMU</span> under Proxmox, and
+            for the workloads that need real GPU or PCIe performance I use
+            <span class="text-slate-light">VFIO passthrough</span> to hand a physical device straight
+            into a guest, which is how the lab runs GPU compute and isolated inference endpoints at
+            close to bare-metal speed. <span class="text-slate-light">Arch Linux</span> is my daily
+            driver and the place I try new things first, while
+            <span class="text-slate-light">Debian and Ubuntu</span> sit underneath most of the server
+            workloads where I want something boring and stable, and the day to day is genuinely
+            hands-on across all of it, from initramfs and LUKS unlocking at boot, to chasing down a
+            systemd unit that will not start, to tuning storage and networking while it is under real
+            load. I treat the operating system as something to understand and shape rather than a black
+            box to reboot when it acts up, and that is true whether I am on my own workstation or deep
+            inside a server I am responsible for.
+          </p>
+          <p>
+            The last piece, and honestly the one that makes the rest of it sustainable, is writing
+            things down. Documentation lives in a self-hosted
+            <span class="text-slate-light">Hudu</span> instance where I keep runbooks, asset and
+            credential records, and network topology in one searchable place, and the more technical,
+            project-level detail lives in <span class="text-slate-light">Markdown</span> right next to
+            the code across a wide range of repositories. The goal is always the same, which is that the
+            next person, or future me at two in the morning, can read the logs, find the root cause, fix
+            it properly, and not have to relearn the whole thing from scratch.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Network Diagram with working lightbox -->
+    <section class="section py-16 bg-navy-light/30" x-data="{ open: false }" x-on:keydown.escape.window="open = false">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Network & Infrastructure <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate">The physical and virtual topology. Click the diagram to expand.</p>
+        </div>
+
+        <button
+          type="button"
+          @click="open = true"
+          class="card p-2 md:p-4 w-full block group cursor-zoom-in"
+          aria-label="Expand infrastructure diagram"
+        >
+          <div class="relative">
+            <img
+              src="/infrastructure.png"
+              alt="Homelab Infrastructure Diagram"
+              class="w-full h-auto rounded-lg transition-transform duration-300 group-hover:scale-[1.01]"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-linear-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-end justify-center pb-6">
+              <span class="text-accent font-mono text-sm">Click to expand</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Lightbox modal -->
+        <div
+          x-show="open"
+          x-cloak
+          x-transition.opacity
+          @click="open = false"
+          class="fixed inset-0 z-[100] bg-navy/90 backdrop-blur-xs flex items-center justify-center p-4 md:p-10"
+        >
+          <button
+            type="button"
+            @click="open = false"
+            class="absolute top-5 right-5 text-slate-light hover:text-accent transition-colors"
+            aria-label="Close"
+          >
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src="/infrastructure.png"
+            alt="Homelab Infrastructure Diagram (expanded)"
+            @click.stop
+            class="max-w-full max-h-full w-auto h-auto rounded-lg shadow-2xl"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Virtualization & Compute -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Virtualization & Compute <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-3xl leading-relaxed">
+            The compute layer is a nine-node Proxmox VE cluster spanning everything from an EPYC
+            server to small-form-factor boxes, tied together with shared storage, segmented
+            networking, and GPU passthrough where workloads need real silicon.
+          </p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {virtualization.map(card => (
+            <div class="card py-5 px-5 hover:border-accent/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xl">{card.icon}</span>
+                <h3 class="font-semibold text-slate-light text-sm">{card.title}</h3>
+              </div>
+              <p class="text-slate text-xs leading-relaxed">{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Network & Edge Security (FortiGate) -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Network & Edge Security <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-3xl leading-relaxed">
+            The edge runs on FortiGate, which is not just a firewall but the policy enforcement point
+            for routing, inspection, and automated response. UniFi handles the switching and wireless
+            fabric beneath it, and remote access is kept off the firewall entirely on a Tailscale mesh.
+          </p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          {edgeSecurity.map(card => (
+            <div class="card py-5 px-5 hover:border-accent/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xl">{card.icon}</span>
+                <h3 class="font-semibold text-slate-light text-sm">{card.title}</h3>
+              </div>
+              <p class="text-slate text-xs leading-relaxed">{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Observability & Security Stack (on-brand HTML/CSS diagram) -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-10 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Observability & Security <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            How metrics, logs, and security telemetry flow, exposed only over the tailnet.
+          </p>
+        </div>
+
+        <!-- Diagram -->
+        <div class="card p-6 md:p-10">
+          <!-- Sources row -->
+          <p class="text-center text-slate-dark text-xs font-mono uppercase tracking-wider mb-4">Sources</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+            <div class="rounded-lg border border-accent/30 bg-navy/50 p-4 text-center">
+              <p class="text-slate-light font-semibold text-sm">Proxmox Cluster</p>
+              <p class="text-slate text-xs mt-1">node_exporter + pve-exporter</p>
+            </div>
+            <div class="rounded-lg border border-accent/30 bg-navy/50 p-4 text-center">
+              <p class="text-slate-light font-semibold text-sm">Hosts & Services</p>
+              <p class="text-slate text-xs mt-1">Wazuh agents · syslog-ng</p>
+            </div>
+            <div class="rounded-lg border border-accent/30 bg-navy/50 p-4 text-center">
+              <p class="text-slate-light font-semibold text-sm">Edge & Firewalls</p>
+              <p class="text-slate text-xs mt-1">FortiGate · CrowdSec parsers</p>
+            </div>
+          </div>
+
+          <!-- Arrow down -->
+          <div class="flex justify-center my-3">
+            <span class="text-accent text-2xl">↓</span>
+          </div>
+
+          <!-- Collection / processing row -->
+          <p class="text-center text-slate-dark text-xs font-mono uppercase tracking-wider mb-4">Collection & Detection</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="rounded-lg border border-aqua/40 bg-navy/50 p-4 text-center">
+              <p class="text-aqua font-semibold text-sm">Prometheus + Loki</p>
+              <p class="text-slate text-xs mt-1">Metrics TSDB · log store</p>
+            </div>
+            <div class="rounded-lg border border-aqua/40 bg-navy/50 p-4 text-center">
+              <p class="text-aqua font-semibold text-sm">Wazuh Manager</p>
+              <p class="text-slate text-xs mt-1">SIEM/XDR correlation</p>
+            </div>
+            <div class="rounded-lg border border-aqua/40 bg-navy/50 p-4 text-center">
+              <p class="text-aqua font-semibold text-sm">CrowdSec LAPI</p>
+              <p class="text-slate text-xs mt-1">Decisions → bouncers</p>
+            </div>
+          </div>
+
+          <!-- Arrow down -->
+          <div class="flex justify-center my-3">
+            <span class="text-accent text-2xl">↓</span>
+          </div>
+
+          <!-- Presentation row -->
+          <p class="text-center text-slate-dark text-xs font-mono uppercase tracking-wider mb-4">Visualization</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+            <div class="rounded-lg border border-accent/40 bg-navy/50 p-4 text-center">
+              <p class="text-accent font-semibold text-sm">Grafana</p>
+              <p class="text-slate text-xs mt-1">Dashboards · alerts</p>
+            </div>
+            <div class="rounded-lg border border-accent/40 bg-navy/50 p-4 text-center">
+              <p class="text-accent font-semibold text-sm">Wazuh Dashboard</p>
+              <p class="text-slate text-xs mt-1">Security analytics</p>
+            </div>
+          </div>
+
+          <!-- Access note -->
+          <div class="mt-8 flex justify-center">
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-dark/40 bg-navy/60 text-slate text-xs font-mono">
+              🔒 Reverse proxy (TLS) bound to Tailscale only, no public exposure
+            </span>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            On the visibility side I run a pull-based metrics stack, with
+            <span class="text-slate-light">Prometheus</span> scraping node_exporter on every host and a
+            pve-exporter on the Proxmox cluster, so I have a live picture of CPU, memory, storage, and
+            VM health across the whole fleet rather than finding out something is wrong when a user
+            calls. <span class="text-slate-light">Grafana</span> sits on top of that as the single pane
+            of glass, and Alertmanager handles the routing so the alerts that actually matter reach me
+            instead of getting buried in noise. Logs move through
+            <span class="text-slate-light">syslog-ng</span>, which collects everything from the
+            FortiGate, the Proxmox nodes, and the Linux hosts and ships it into Loki with
+            low-cardinality labels, which keeps the streams cheap to store and quick to search when I am
+            chasing a problem down with LogQL.
+          </p>
+          <p>
+            Security telemetry runs right alongside the metrics instead of being bolted on after the
+            fact. <span class="text-slate-light">Wazuh</span> agents on the hosts ship file-integrity
+            events, log data, and security signals up to a central manager that correlates them and
+            maps detections to MITRE ATT&CK, which gives me real SIEM and XDR coverage rather than just
+            hoping nothing slipped past. <span class="text-slate-light">CrowdSec</span> ties it together
+            at the network level by parsing logs across the hosts and the edge, so a malicious IP seen
+            on one box gets blocked everywhere through bouncers, and that same blocklist is mirrored
+            into the FortiGate as a live threat feed so the perimeter enforces what the rest of the
+            fleet has already learned. None of these dashboards ever touch the public internet, because
+            the reverse proxy that fronts them is bound to the Tailscale interface only, so the single
+            way in is over the mesh.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Design Choices -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-10 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Design Choices <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">Why the monitoring and security stack is built the way it is.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {designChoices.map(choice => (
+            <div class="card py-5 px-5 hover:border-accent/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xl">{choice.icon}</span>
+                <h3 class="font-semibold text-slate-light text-sm">{choice.title}</h3>
+              </div>
+              <p class="text-slate text-xs leading-relaxed">{choice.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Backup & Disaster Recovery -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Backup & Disaster Recovery <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-3xl leading-relaxed">
+            Backups follow 3-2-1 with tested restores, not hope, using a different tool matched to each
+            tier, from the dev workstation to the cluster to an offsite copy that survives losing the
+            whole site.
+          </p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {backup.map(card => (
+            <div class="card py-5 px-5 hover:border-accent/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xl">{card.icon}</span>
+                <h3 class="font-semibold text-slate-light text-sm">{card.title}</h3>
+              </div>
+              <p class="text-slate text-xs leading-relaxed">{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Technologies -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <h3 class="text-lg font-semibold text-slate-light mb-6 text-center">
+          <span class="text-accent">⟨</span> Core Technologies <span class="text-accent">⟩</span>
+        </h3>
+        <div class="flex flex-wrap justify-center gap-3">
+          {techStack.map(tech => (
+            <span class="px-4 py-2 bg-navy-light border border-slate-dark/30 rounded-full text-slate text-sm font-mono hover:border-accent/50 hover:text-accent transition-colors cursor-default">
+              {tech}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section text-center">
+      <div class="container-narrow">
+        <h2 class="text-2xl font-bold text-slate-light mb-4">Need Infrastructure Built or Monitored?</h2>
+        <p class="text-slate mb-6 max-w-xl mx-auto">
+          From Proxmox clusters and FortiGate edges to full observability, security, and tested
+          disaster recovery, I design and operate resilient infrastructure for businesses.
+        </p>
+        <div class="flex justify-center gap-4">
+          <a href="/#contact" class="btn btn-primary">Get In Touch</a>
+          <a href="/technologies" class="btn btn-secondary">View Tech Stack</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-8 text-center">
+    <p class="text-slate text-sm font-mono">
+      <a href="/" class="text-accent hover:underline">← Back to Home</a>
+    </p>
+  </footer>
+</BaseLayout>
+
+<style>
+  [x-cloak] { display: none !important; }
+</style>

@@ -1,0 +1,310 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Navigation from '@components/Navigation.astro';
+import '@styles/global.css';
+
+interface Hardware {
+  name: string;
+  spec: string;
+  role: string;
+  icon: string;
+}
+
+const hardware: Hardware[] = [
+  {
+    name: 'RTX 5090',
+    spec: 'Blackwell · 32 GB VRAM',
+    role: 'Daily-driver GPU running native ollama-cuda with flash attention and a q8_0 quantized KV cache, keeping a 64k-token context resident without spilling VRAM.',
+    icon: '🎛️',
+  },
+  {
+    name: 'RTX 4090',
+    spec: '24 GB VRAM · Proxmox',
+    role: 'Passed into a Proxmox VM via VFIO as an isolated inference endpoint at near-bare-metal performance, giving the agent layer a second OpenAI-compatible target to route to over the LAN.',
+    icon: '🖥️',
+  },
+  {
+    name: '2× DGX Spark',
+    spec: 'Clustered',
+    role: 'Clustered to run vLLM with tensor parallelism, splitting weights across devices for models too large for a single card and high-throughput batch serving.',
+    icon: '⚡',
+  },
+  {
+    name: 'RTX 3080',
+    spec: '10 GB VRAM · Proxmox',
+    role: 'A Proxmox host GPU passed through to guests for extra CUDA inference and compute capacity across the cluster.',
+    icon: '🎮',
+  },
+  {
+    name: 'RTX 3070',
+    spec: '8 GB VRAM · Proxmox',
+    role: 'Another cluster host GPU available for VFIO passthrough, handling smaller models and offloading transcoding and compute jobs.',
+    icon: '🕹️',
+  },
+  {
+    name: '2× RTX 2060',
+    spec: '6 GB VRAM each · Proxmox',
+    role: 'A pair of host GPUs spread across nodes, driving CI/CD and DevOps workflows for the most part, with spare capacity for lightweight inference and testing.',
+    icon: '🎚️',
+  },
+];
+
+interface Tool {
+  name: string;
+  description: string;
+  value: string;
+}
+
+const aiStack: Tool[] = [
+  {
+    name: 'Ollama',
+    description: 'Native CUDA host on the RTX 5090 serving OpenAI-compatible local models with flash attention, q8 KV cache, and 64k context.',
+    value: 'Private inference, zero per-token cost',
+  },
+  {
+    name: 'vLLM',
+    description: 'High-throughput serving engine running tensor-parallel across the Spark cluster, and across the 5090 and 4090 on separate systems, to split large models and serve concurrent batch workloads.',
+    value: 'Scales beyond a single GPU',
+  },
+  {
+    name: 'Hermes Agent',
+    description: 'Persistent, model-agnostic autonomous agent that learns reusable skills and swaps providers without losing memory.',
+    value: 'Automation that compounds over time',
+  },
+  {
+    name: 'n8n',
+    description: 'Self-hosted workflow automation wiring models, APIs, and internal services into event-driven, version-controlled pipelines.',
+    value: 'Turns AI into always-on business process',
+  },
+  {
+    name: 'OpenClaw',
+    description: 'Coding and automation agent for day-to-day development that refactors, scripts, and ships changes against real repos.',
+    value: 'Engineering throughput multiplier',
+  },
+  {
+    name: 'OpenShell',
+    description: 'Sandboxed, policy-governed runtimes for executing autonomous agents safely, with guardrails on what they can touch.',
+    value: 'Run agents without handing over the keys',
+  },
+  {
+    name: 'Claude Code',
+    description: 'Anthropic\'s agentic coding CLI, my primary driver for real development work against live repositories.',
+    value: 'Frontier-grade engineering, day to day',
+  },
+  {
+    name: 'Codex',
+    description: 'OpenAI\'s coding agent CLI, used alongside Claude Code to cross-check approaches and lean on a second frontier model.',
+    value: 'A second opinion on the hard problems',
+  },
+  {
+    name: 'OpenCode',
+    description: 'Open-source coding agent pointed at my local Ollama and vLLM endpoints, so it runs against models on my own system and network, and it can also pull in GitHub Copilot models via OAuth.',
+    value: 'Frontier-style tooling on private models',
+  },
+];
+---
+
+<BaseLayout title="AI Infrastructure | Christopher Kelley" description="Local and cloud AI infrastructure spanning RTX 5090 and 4090 GPUs, a DGX Spark cluster, Ollama and vLLM serving, the Hermes agent harness, OpenClaw, OpenShell, and n8n workflow automation built for privacy, cost control, and real business value.">
+  <Navigation />
+
+  <main class="pt-24">
+    <!-- Hero -->
+    <section class="section pb-12">
+      <div class="container-narrow text-center">
+        <p class="heading-accent">AI Infrastructure</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-light mb-4">Local & Cloud AI</h1>
+        <p class="text-slate max-w-2xl mx-auto">
+          Private AI running on hardware I own, with cloud as burst capacity rather than the default,
+          built for privacy, cost control, and turning models into automation that earns its keep.
+        </p>
+      </div>
+    </section>
+
+    <!-- Private AI on owned silicon (prose) -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Inference That Runs On My Own Silicon <span class="text-accent">⟩</span>
+          </h2>
+        </div>
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl">
+          <p>
+            I run AI on hardware I actually own, and I treat the cloud as burst capacity rather than
+            the starting point. The daily driver is an <span class="text-slate-light">RTX 5090</span>,
+            which is 32 GB of Blackwell running native <span class="text-slate-light">ollama-cuda</span>
+            with flash attention and a <span class="text-slate-light">q8_0 quantized KV cache</span>,
+            and that combination keeps a full 64k-token context resident on the card without spilling
+            out of VRAM. Keeping the model on local silicon means inference is private by default,
+            there is no per-token cost on the everyday grunt work, and I am never throttled by someone
+            else's rate limits on the things I run all day long.
+          </p>
+          <p>
+            There is a second card too, an <span class="text-slate-light">RTX 4090</span> that lives
+            inside a Proxmox VM by way of <span class="text-slate-light">VFIO passthrough</span>, and it
+            gives me an isolated inference endpoint at close to bare-metal performance that the agent
+            layer can target over the LAN. When a model is too large to sit comfortably on a single
+            card, I lean on <span class="text-slate-light">vLLM with tensor parallelism</span>, which
+            shards the weights across GPUs so the 5090 and the 4090 on separate systems can carry one
+            model between them, and the same approach scales out to a pair of clustered
+            <span class="text-slate-light">DGX Spark</span> units for the bigger jobs and
+            high-throughput batch serving. It is not one giant pooled memory space in the NVLink sense,
+            but in practice it lets me run models that no single card here could hold on its own.
+          </p>
+          <p>
+            The thing that makes all of this actually usable is that every one of these endpoints
+            speaks the same <span class="text-slate-light">OpenAI-compatible API</span>, so the exact
+            same client code can point at a local card, the Spark cluster, or a frontier provider
+            without changing a line. That keeps me honest about cost, because I can run the cheap,
+            high-volume work locally and only reach for a paid frontier model when a task genuinely
+            needs it, and it keeps the whole setup portable, because nothing is welded to one vendor's
+            SDK or dependent on any single company's uptime.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Compute -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-10 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Compute <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">GPUs that keep inference local, fast, and private.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          {hardware.map(hw => (
+            <div class="card py-6 px-5 hover:border-accent/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">{hw.icon}</span>
+                <div>
+                  <h3 class="font-semibold text-slate-light">{hw.name}</h3>
+                  <p class="text-accent text-xs font-mono">{hw.spec}</p>
+                </div>
+              </div>
+              <p class="text-slate text-sm leading-relaxed">{hw.role}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Harness engineering (prose) -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Harness Engineering, Not Model Worship <span class="text-accent">⟩</span>
+          </h2>
+        </div>
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl">
+          <p>
+            The hard part of building agents is almost never the model itself, it is the harness around
+            it. I build on <span class="text-slate-light">Hermes Agent</span> with the belief that the
+            wrapper, meaning the instructions, the memory, the tool orchestration, and the feedback
+            loop, carries more real value than whichever model happens to be answering, which is exactly
+            why I keep the providers swappable without losing any state. Every agent runs an ordered
+            <span class="text-slate-light">fallback chain</span>, with a frontier API as the primary
+            brain, a second cloud model sitting behind it, and a local Ollama model as the zero-cost
+            last resort, so the work keeps moving even when an API is down or the internet is having a
+            bad day.
+          </p>
+          <p>
+            Memory is bounded on purpose, with a small working set on top of a
+            full-text-searchable session archive, because forcing the agent to consolidate beats
+            letting the context balloon until it gets expensive and sloppy. When an agent repeats a
+            task, or I correct it on something, it writes the procedure back out to a reusable
+            <span class="text-slate-light">skill file</span>, so the capability compounds over weeks
+            instead of resetting every single session. The end result is genuinely model-agnostic
+            engineering, where I pick the cheapest model that clears the bar for a given job and let the
+            scaffolding do the heavy lifting, and for a business that means automation it actually owns,
+            portable across vendors rather than locked to one company's API.
+          </p>
+          <p>
+            That portability is really the whole point. Models are improving and repricing constantly,
+            and a harness built this way lets me swap in a better or cheaper one the week it lands
+            without rewriting the automation around it, so the investment goes into the durable part,
+            which is the workflows and the accumulated skills, rather than into a bet on any single
+            provider staying ahead of the pack.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Stack -->
+    <section class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-10 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> AI Stack <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">Serving, agents, and automation, and the value each one delivers.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {aiStack.map(tool => (
+            <div class="card py-5 px-5 hover:border-accent/30 flex flex-col">
+              <h3 class="font-semibold text-slate-light text-sm mb-1">{tool.name}</h3>
+              <p class="text-slate text-xs leading-relaxed grow">{tool.description}</p>
+              <p class="text-accent text-xs font-mono mt-3 pt-3 border-t border-slate-dark/30">→ {tool.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Wired together with n8n (prose) -->
+    <section class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Wired Together With n8n <span class="text-accent">⟩</span>
+          </h2>
+        </div>
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl">
+          <p>
+            <span class="text-slate-light">n8n</span> is what turns AI from something you invoke by
+            hand into something that quietly runs in the background. It is self-hosted and wired into
+            the same network as the models, and it fires on triggers and schedules, watching for events,
+            calling models and internal APIs, transforming the output, and handing the result to the
+            next service in line. Enrichment, notifications, ticket routing, document processing, and
+            scheduled jobs all live here as version-controlled workflows, so the automation is
+            reproducible and observable instead of a pile of cron scripts that nobody can audit later.
+          </p>
+          <p>
+            Because the local cards and the cloud providers all expose that same OpenAI-compatible API,
+            n8n can call inference directly as just another step in a workflow, which makes it the
+            connective tissue between the models, the data, and the tools a company already uses day to
+            day. The payoff is concrete, because repetitive knowledge work gets handled automatically,
+            on infrastructure I control, at a fixed and predictable cost, which adds up to measurable
+            hours back without shipping sensitive data off to someone else's servers.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section text-center">
+      <div class="container-narrow">
+        <h2 class="text-2xl font-bold text-slate-light mb-4">Exploring AI for Your Business?</h2>
+        <p class="text-slate mb-6 max-w-xl mx-auto">
+          Whether it’s private local inference, autonomous agents, or wiring AI into the workflows you
+          already run, I can help you deploy it securely and cost-effectively.
+        </p>
+        <div class="flex justify-center gap-4">
+          <a href="/#contact" class="btn btn-primary">Get In Touch</a>
+          <a href="/lab" class="btn btn-secondary">View the Lab</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-8 text-center">
+    <p class="text-slate text-sm font-mono">
+      <a href="/" class="text-accent hover:underline">← Back to Home</a>
+    </p>
+  </footer>
+</BaseLayout>

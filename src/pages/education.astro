@@ -195,7 +195,7 @@ const capstoneHighlights = [
           {courses.map(course => (
             <div class="card">
               <div class="flex items-center gap-3 mb-2">
-                <span class="px-2 py-1 bg-accent/10 text-accent text-xs font-mono rounded">
+                <span class="px-2 py-1 bg-accent/10 text-accent text-xs font-mono rounded-sm">
                   {course.code}
                 </span>
                 <h3 class="font-semibold text-slate-light">{course.name}</h3>
@@ -257,6 +257,21 @@ const capstoneHighlights = [
             </p>
             <span class="text-slate text-sm">IT 420</span>
           </div>
+        </div>
+
+        <div class="max-w-3xl mx-auto mt-12 space-y-5 text-slate leading-relaxed">
+          <p>
+            A lot of my degree was hands-on building, and the project I remember most is the event tracking app I wrote for CS 360. It was a native Android app in Java backed by a SQLite database, with a login screen, a grid calendar of upcoming events, and SMS notifications so users got reminded before something slipped past them, and I leaned on Material Design to keep it readable and consistent. I started out trying to clone a full Google Calendar style event grid, but partway through I realized the scope was getting away from me, so I pulled it back to a cleaner GridView that I could actually ship and polish, and that was a good early lesson in planning the thing you can finish instead of the thing that sounds impressive on paper.
+          </p>
+          <p>
+            CS 250 was where the process side clicked for me, because we ran a real Scrum team on a travel planning app and used JIRA for the backlog and burndown, GitHub for version control, and daily standups to keep everyone moving. Midway through, the team pivoted the whole product toward wellness and detox destinations to chase where the market was heading, and that meant tearing up user stories and test cases we had already written, but it taught me that change is something you embrace instead of fight, especially when you are iterating and the team has to stay adaptable. Around the same time in DAD 220 I built the relational database for Quantigration's RMA system, designing the ERD across customers, orders, and returns, writing the schema in MySQL, and then running the joins and aggregations that turned raw rows into something a stakeholder could actually use, like spotting that Massachusetts drove the highest return volume so quality control could put its resources where the problems really were.
+          </p>
+          <p>
+            My capstone work in IT 420 and IT 489 is the closest thing to what I do now for a living. I designed an enterprise security expansion for a fictional SaaS company called F-Secure, built around SD-WAN for traffic prioritization and failover, Fortinet FortiGate firewalls running both virtual and appliance based, Tailscale over WireGuard for zero-trust remote access, and Microsoft Azure underneath it for scale, and I layered in VLAN segmentation, full SSL inspection, IPS, web filtering, and centralized logging through Graylog so the whole thing could actually be watched. One of the real hurdles was waiting on regulatory clarity from partner ISPs and carriers, so instead of sitting idle I kicked off compatibility testing in parallel, which kept the project on schedule and ended up being a solid short-term fix.
+          </p>
+          <p>
+            What I am proudest of is that I did not stop at the design document, because I went and stood the whole thing up in my own homelab and got hands-on with Tailscale mesh networking, Azure, and SD-WAN on real FortiGate hardware, even adding custom DERP relays to cut down VPN latency. That capstone pulled together every thread from the program, the object-oriented and lifecycle fundamentals from the programming side and the networking, security, and cloud work from the IT side, and it is a big part of why building and breaking things in a lab is still how I learn best today.
+          </p>
         </div>
       </div>
     </section>
