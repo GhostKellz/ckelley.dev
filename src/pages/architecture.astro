@@ -1,0 +1,1218 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Navigation from '@components/Navigation.astro';
+import SectionNav from '@components/SectionNav.astro';
+import DiagramFrame from '@components/diagram/DiagramFrame.astro';
+import DiagramLane from '@components/diagram/DiagramLane.astro';
+import DiagramNode from '@components/diagram/DiagramNode.astro';
+import LogPipelineFlow from '@components/diagram/flows/LogPipelineFlow.astro';
+import MetricsPipelineFlow from '@components/diagram/flows/MetricsPipelineFlow.astro';
+import SecurityOverlayFlow from '@components/diagram/flows/SecurityOverlayFlow.astro';
+import DeploymentTopologyFlow from '@components/diagram/flows/DeploymentTopologyFlow.astro';
+import FortiGateSdwanFlow from '@components/diagram/flows/FortiGateSdwanFlow.astro';
+import SdwanLoadBalanceFlow from '@components/diagram/flows/SdwanLoadBalanceFlow.astro';
+import ServerLoadBalanceFlow from '@components/diagram/flows/ServerLoadBalanceFlow.astro';
+import SslInspectionFlow from '@components/diagram/flows/SslInspectionFlow.astro';
+import Layer7FilterFlow from '@components/diagram/flows/Layer7FilterFlow.astro';
+import LiveMigrationFlow from '@components/diagram/flows/LiveMigrationFlow.astro';
+import LookingGlassFlow from '@components/diagram/flows/LookingGlassFlow.astro';
+import IommuSplitFlow from '@components/diagram/flows/IommuSplitFlow.astro';
+import CudaDeliveryFlow from '@components/diagram/flows/CudaDeliveryFlow.astro';
+import CudaClusterFlow from '@components/diagram/flows/CudaClusterFlow.astro';
+import RaidRedundancyFlow from '@components/diagram/flows/RaidRedundancyFlow.astro';
+import NvidiaContainerToolkitFlow from '@components/diagram/flows/NvidiaContainerToolkitFlow.astro';
+import ContainerDriverSplitFlow from '@components/diagram/flows/ContainerDriverSplitFlow.astro';
+import BackupStrategyFlow from '@components/diagram/flows/BackupStrategyFlow.astro';
+import ArchBackupFlow from '@components/diagram/flows/ArchBackupFlow.astro';
+import ProxmoxBackupFlow from '@components/diagram/flows/ProxmoxBackupFlow.astro';
+import VeeamBackupFlow from '@components/diagram/flows/VeeamBackupFlow.astro';
+import BackupEncryptionFlow from '@components/diagram/flows/BackupEncryptionFlow.astro';
+import '@styles/global.css';
+
+const navSections = [
+  { id: 'top', label: 'Top' },
+  { id: 'topology', label: 'Topology' },
+  { id: 'edge', label: 'Edge & SD-WAN' },
+  { id: 'virtualization', label: 'Virtualization' },
+  { id: 'workstation', label: 'Workstation' },
+  { id: 'backup', label: 'Backup & DR' },
+  { id: 'raid', label: 'RAID & Redundancy' },
+  { id: 'cuda', label: 'CUDA' },
+  { id: 'ai', label: 'AI' },
+  { id: 'security', label: 'Security' },
+  { id: 'observability', label: 'Observability' },
+  { id: 'dataflow', label: 'Follow the Data' },
+];
+
+const domains = [
+  { id: 'virtualization', label: 'Virtualization', icon: '🧮', tone: 'text-blue-light', body: 'A nine-node Proxmox cluster with HA, ZFS, SDN, and GPU passthrough.' },
+  { id: 'ai', label: 'AI / Inference', icon: '🧠', tone: 'text-violet-light', body: 'Local-first inference across multiple GPUs, vLLM, Ollama, and an agent harness.' },
+  { id: 'security', label: 'Security', icon: '🛡️', tone: 'text-danger-light', body: 'Distributed CrowdSec, FortiGate edge, DNS failover, all infra over Tailscale.' },
+  { id: 'observability', label: 'Observability', icon: '📊', tone: 'text-emerald-light', body: 'Heimdall: metrics, logs, and SIEM into a single tailnet-only pane of glass.' },
+];
+---
+
+<BaseLayout
+  title="Architecture | Christopher Kelley"
+  description="A whole-stack architecture deep-dive: dual-WAN FortiGate SD-WAN, a Proxmox cluster with VFIO GPU passthrough, local-first AI inference with vLLM and Ollama, distributed CrowdSec security with a public threat feed, and full Heimdall observability — all wired over a Tailscale control plane."
+>
+  <Navigation />
+  <SectionNav sections={navSections} />
+
+  <main class="pt-24">
+    <!-- Hero -->
+    <section id="top" class="section pb-10">
+      <div class="container-narrow text-center">
+        <p class="heading-accent">Architecture</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-light mb-4">
+          The Whole Stack, <span class="text-gradient">End to End</span>
+        </h1>
+        <p class="text-slate max-w-2xl mx-auto leading-relaxed">
+          One environment spanning virtualization, AI, security, and observability — designed,
+          built, and operated as a single system. This is how the pieces actually fit together:
+          the topology, the dataflows, and the decisions behind them.
+        </p>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-10 max-w-3xl mx-auto">
+          {domains.map(d => (
+            <a href={`#${d.id}`} class="card py-5 px-4 text-center group">
+              <span class="text-2xl block mb-2">{d.icon}</span>
+              <p class={`font-semibold text-sm ${d.tone}`}>{d.label}</p>
+              <p class="text-slate text-xs mt-1 leading-relaxed">{d.body}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Global Topology ─────────────────────────────────────────── -->
+    <section id="topology" class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-accent">⟨</span> Global Topology <span class="text-accent">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Two WAN links into a FortiGate edge, a local Proxmox cluster, a cloud node, a public
+            DMZ, and a second homelab — stitched together by a Tailscale control plane so management
+            never crosses the public internet.
+          </p>
+        </div>
+
+        <div class="reveal">
+          <DiagramFrame tone="teal" scroll={true} eyebrow="Edge → Core → Sites">
+            <!-- WAN -->
+            <DiagramLane label="WAN Uplinks" tone="aqua" cols={2} connector={true}>
+              <DiagramNode tone="aqua" icon="🌐" title="Fiber 2.5 GbE" sub="Primary" />
+              <DiagramNode tone="aqua" icon="🌐" title="Cable 950/40" sub="Backup" />
+            </DiagramLane>
+
+            <!-- Edge -->
+            <DiagramLane label="Edge" tone="teal" cols={1} connector={true}>
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="🛡️"
+                title="FortiGate SD-WAN"
+                sub="Failover · SLA steering · IPS / UTM · threat feeds" />
+            </DiagramLane>
+
+            <!-- Resolution & Core -->
+            <DiagramLane label="Resolution & Core" tone="blue" cols={3} connector={true}>
+              <DiagramNode tone="blue" icon="🧭" title="Technitium DNS" sub="→ Unbound" />
+              <DiagramNode tone="blue" icon="🕳️" title="Pi-hole" sub="→ Unbound" />
+              <DiagramNode tone="blue" icon="🔀" title="Core Switch" sub="VLAN trunk · LACP" />
+            </DiagramLane>
+
+            <!-- Sites & Segments -->
+            <DiagramLane label="Sites & Segments" tone="teal" cols={5}>
+              <DiagramNode tone="blue" variant="solid" icon="🧮"
+                title="Local PVE Cluster"
+                sub="chromium · palladium · osmium · prometheus · rhenium — 10.0.0.0/24" />
+              <DiagramNode tone="red" variant="solid" icon="🌩️"
+                title="DMZ — thallium"
+                sub="nginx + Docker · public" />
+              <DiagramNode tone="violet" variant="solid" icon="☁️"
+                title="Cloud PVE1"
+                sub="cktech-nginx · 10.10.10.0/24" />
+              <DiagramNode tone="red" variant="solid" icon="🔷"
+                title="Azure — ckel-web-01"
+                sub="public web · CrowdSec bouncer" />
+              <DiagramNode tone="amber" variant="solid" icon="🧪"
+                title="Second Homelab"
+                sub="Lab40 VLAN → Lab-40F 90G · Hyper-V ×2 + Veeam" />
+            </DiagramLane>
+
+            <!-- Backup band -->
+            <div class="mt-6">
+              <DiagramLane label="Backup & DR" tone="emerald" cols={3}>
+                <DiagramNode tone="emerald" icon="🗃️" title="Synology NAS" sub="Active Backup · M365 / Workspace" />
+                <DiagramNode tone="emerald" icon="🧷" title="Proxmox Backup Server" sub="dedup · encrypted" />
+                <DiagramNode tone="emerald" icon="☁️" title="Wasabi S3" sub="offsite · 3-2-1" />
+              </DiagramLane>
+            </div>
+
+            <!-- Tailscale overlay band -->
+            <div class="mt-8 rounded-lg border border-accent/30 bg-accent/5 px-5 py-4 text-center" style="box-shadow: 0 0 24px -8px #64ffda;">
+              <p class="text-accent font-mono text-xs uppercase tracking-wider mb-1">Control Plane Overlay</p>
+              <p class="text-slate-light text-sm">
+                🔗 Tailscale mesh spans every site — all infra comms (SSH, LAPI, Wazuh, dashboards)
+                ride the tailnet with strict ACLs and per-session SSH auth.
+              </p>
+            </div>
+
+            <Fragment slot="legend">
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-blue align-middle mr-1.5"></span>Internal LAN / cluster</span>
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-danger align-middle mr-1.5"></span>Public surface / DMZ</span>
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-violet align-middle mr-1.5"></span>Cloud</span>
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber align-middle mr-1.5"></span>Second site</span>
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald align-middle mr-1.5"></span>Backup / DR</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The edge is a <span class="text-slate-light">FortiGate</span> bonding a 2.5 GbE fiber line
+            with a cable circuit into one resilient pipe, where SD-WAN health checks fail traffic over
+            if a link drops and SLA-based steering keeps latency-sensitive workloads on the best path.
+            Behind it, a dual-resolver DNS setup and a VLAN-trunked core fan out to the
+            <span class="text-slate-light">local Proxmox cluster</span> on
+            <span class="text-slate-light">10.0.0.0/24</span>, a cloud Proxmox node on its own
+            <span class="text-slate-light">10.10.10.0/24</span> SDN, a public DMZ, and a separate
+            second homelab on its own VLAN and firewall.
+          </p>
+          <p>
+            The piece that ties it all together is <span class="text-slate-light">Tailscale</span>.
+            Rather than exposing management interfaces, every site joins one tailnet and all
+            administrative traffic — SSH, the CrowdSec LAPI, the Wazuh indexer, Grafana and Prometheus —
+            rides that overlay with strict ACLs and authenticated SSH on every session. The only things
+            deliberately facing the public internet are a hardened web front door and a single
+            threat-feed endpoint, both isolated from the internal estate.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Edge & SD-WAN (FortiGate) ───────────────────────────────── -->
+    <section id="edge" class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-aqua-light">⟨</span> The FortiGate Edge <span class="text-aqua-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            One FortiGate 90G doing real enterprise work — SD-WAN, server and link load balancing,
+            full deep-SSL inspection, and Layer-7 filtering — without giving up line-rate throughput.
+          </p>
+        </div>
+
+        <!-- Speeds & feeds callout band -->
+        <div class="mb-12 rounded-lg border border-aqua-light/30 bg-aqua-light/5 px-5 py-5 reveal" style="box-shadow: 0 0 24px -8px #22d3ee;">
+          <p class="text-aqua-light font-mono text-xs uppercase tracking-wider mb-3 text-center">Speeds &amp; Feeds — Line-Rate With the Brain On</p>
+          <ul class="text-slate-light text-sm max-w-3xl mx-auto leading-relaxed space-y-1.5 list-none">
+            <li>⚡ <span class="text-slate-light font-semibold">2.5 Gbps symmetric</span> internet on the WAN1 fiber (static block) — sustained with <span class="text-slate-light">Full SSL Inspection + IPS + Fortinet threat protection</span> all enabled.</li>
+            <li>🔀 The <span class="text-slate-light">10 GbE WAN port repurposed as the LAN uplink</span> → 10 G UniFi switch → 2.5 G access switches; a 1 GbE LAN port redefined as <span class="text-slate-light">WAN2</span>, the cable backup for SD-WAN failover.</li>
+            <li>🧮 <span class="text-slate-light">10 G east-west</span> between the Arch workstation and the entire PVE cluster + backup hosts — VLAN-segmented on the switched fabric.</li>
+            <li>📶 <span class="text-slate-light">2× U7 Pro XG</span> delivering ≈1.5 Gbps symmetric Wi-Fi; Guest50 and IOT60 client-isolated via the UniFi Network Controller.</li>
+          </ul>
+        </div>
+
+        <!-- SD-WAN -->
+        <div class="reveal">
+          <DiagramFrame tone="aqua" scroll={true} eyebrow="SD-WAN" title="Failover &amp; SLA Steering">
+            <FortiGateSdwanFlow />
+            <Fragment slot="legend">
+              <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #fbbf24;"></span>Dotted = Performance SLA feeding the steering decision</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- SD-WAN link load balancing -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="aqua" scroll={true} eyebrow="Load Balancing · 1 of 2" title="SD-WAN Link Load Balancing">
+            <SdwanLoadBalanceFlow />
+            <Fragment slot="legend">
+              <span>Both WAN members carry traffic at once (by bandwidth ratio) — aggregation, not failover.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Server load balancing -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="aqua" scroll={true} eyebrow="Load Balancing · 2 of 2" title="Server Load Balancing (VIP → Pool)">
+            <ServerLoadBalanceFlow />
+            <Fragment slot="legend">
+              <span>Virtual Server VIP offloads SSL and balances across a health-checked nginx pool with persistence.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Full SSL inspection -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="aqua" scroll={true} eyebrow="Deep inspection" title="Full SSL Inspection — Controlled MITM">
+            <SslInspectionFlow />
+            <Fragment slot="legend">
+              <span>Two TLS sessions: the FortiGate re-signs with <span class="text-slate-light">CKEL_ROOT_CA</span> to the client while validating the origin's real cert.</span>
+              <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #fbbf24;"></span>Dotted = decrypted payload handed to inspection</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Layer 7 filtering -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="aqua" scroll={true} eyebrow="Application layer" title="How Layer-7 Filtering Works">
+            <Layer7FilterFlow />
+            <Fragment slot="legend">
+              <span>Decrypted payload fans out to every L7 module in parallel; their combined result is one policy verdict.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The edge is a single <span class="text-slate-light">FortiGate 90G</span> pushed well past a
+            typical home deployment. <span class="text-slate-light">SD-WAN</span> bonds a 2.5 GbE fiber
+            primary with a 1 GbE cable backup in the <span class="text-slate-light">wan-failover-link</span>
+            zone, where Performance SLA health probes drive both automatic failover and application-aware
+            steering — and, when configured for it, spread sessions across both links at once by bandwidth
+            ratio for aggregate throughput.
+          </p>
+          <p>
+            On the application side, a <span class="text-slate-light">Virtual Server</span> offloads SSL and
+            load-balances across a health-checked nginx pool, while
+            <span class="text-slate-light">Full SSL Inspection</span> acts as a controlled man-in-the-middle:
+            the FortiGate terminates two TLS sessions, re-signing to managed clients with its own
+            <span class="text-slate-light">CKEL_ROOT_CA</span> while validating each origin's real
+            certificate. That decrypted stream is what makes <span class="text-slate-light">Layer-7
+            filtering</span> possible — application control, web filtering, IPS, antivirus, DNS filtering and
+            DLP all inspect the payload in the clear before it is re-encrypted and a single policy verdict is
+            applied. The notable part is doing all of this at <span class="text-slate-light">2.5 Gbps
+            symmetric</span> with inspection fully enabled.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Virtualization ──────────────────────────────────────────── -->
+    <section id="virtualization" class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-blue-light">⟨</span> Virtualization &amp; Compute <span class="text-blue-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            A nine-node Proxmox cluster for server workloads with HA failover, ZFS everywhere, and
+            segmented SDN — where KVM runs Windows, Linux, and macOS (via OpenCore) guests, so any
+            OS can be spun up and tested on real hardware, with VFIO passthrough for GPU-bound work.
+          </p>
+        </div>
+
+        <!-- ── Proxmox cluster (server) ── -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-3 mb-12 reveal">
+          <DiagramNode tone="blue" variant="solid" icon="🧮" title="Proxmox VE Cluster" sub="Corosync quorum · HA · live migration" />
+          <DiagramNode tone="blue" variant="solid" icon="🗄️" title="ZFS Storage" sub="NVMe mirrors · RAIDz2 · zstd · scrubs" />
+          <DiagramNode tone="blue" variant="solid" icon="🕸️" title="SDN" sub="VLAN-aware bridges · VXLAN/EVPN · LACP" />
+          <DiagramNode tone="blue" variant="solid" icon="📜" title="Cloud-Init / IaC" sub="golden templates · Terraform · Ansible" />
+        </div>
+
+        <!-- Live migration flow -->
+        <div class="reveal">
+          <DiagramFrame tone="blue" eyebrow="Pre-copy memory migration" title="Live Migration">
+            <LiveMigrationFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-6 border-t border-dashed border-slate"></span>
+                dotted = storage stays put (shared / ZFS-replicated)
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The compute layer is a nine-node <span class="text-slate-light">Proxmox VE</span> cluster
+            spanning everything from an EPYC server to small-form-factor boxes, tied together with
+            Corosync quorum and HA so guests live-migrate and restart automatically when a node drops.
+            Storage is <span class="text-slate-light">ZFS</span> end to end — NVMe mirrors and RAIDz2
+            pools with compression and scheduled scrubs — and those snapshots feed both replication
+            between nodes and the backup chain.
+          </p>
+        </div>
+
+        <!-- Multi-OS guest cards (KVM runs any OS) -->
+        <div class="grid md:grid-cols-3 gap-3 mt-12 mb-6 reveal">
+          <DiagramNode tone="blue" variant="solid" icon="🪟" title="Windows guests" sub="VirtIO drivers · GPU passthrough when needed" />
+          <DiagramNode tone="blue" variant="solid" icon="🐧" title="Linux guests" sub="any distro · cloud-init golden templates" />
+          <DiagramNode tone="blue" variant="solid" icon="🍎" title="macOS guests" sub="OpenCore + KVM · cross-platform testing" />
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mb-12">
+          <p>
+            Because everything runs on <span class="text-slate-light">KVM</span>, the cluster can boot
+            virtually any operating system — Windows, any Linux distro, even
+            <span class="text-slate-light">macOS via OpenCore</span> — so a guest is available for testing
+            on essentially <span class="text-slate-light">any OS environment</span> on real hardware,
+            without dedicated machines or dual-booting.
+          </p>
+        </div>
+
+        <!-- VFIO passthrough workflow -->
+        <div class="reveal">
+          <DiagramFrame tone="blue" eyebrow="Workflow" title="VFIO GPU Passthrough">
+            <DiagramLane tone="blue" cols={1} connector={true}>
+              <DiagramNode tone="blue" icon="🔧" title="Enable IOMMU on the host"
+                sub="amd_iommu=on · iommu=pt · isolate the IOMMU group" />
+            </DiagramLane>
+            <DiagramLane tone="blue" cols={1} connector={true}>
+              <DiagramNode tone="blue" icon="🔌" title="Bind GPU to vfio-pci"
+                sub="blacklist host driver · stub the device at boot" />
+            </DiagramLane>
+            <DiagramLane tone="blue" cols={1} connector={true}>
+              <DiagramNode tone="blue" icon="🖥️" title="q35 + OVMF guest"
+                sub="PCIe passthrough · GPU + audio function · reset handling" />
+            </DiagramLane>
+            <DiagramLane tone="blue" cols={1}>
+              <DiagramNode tone="violet" variant="solid" glow={true} icon="⚡" title="Guest = near bare-metal GPU"
+                sub="RTX 4090 inference VM · isolated compute node" />
+            </DiagramLane>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            For workloads that need real hardware, <span class="text-slate-light">VFIO passthrough</span>
+            isolates a GPU's IOMMU group, binds it to <span class="text-slate-light">vfio-pci</span>, and
+            hands it straight into a q35/OVMF guest, so a full RTX 4090 runs inside a VM at close to
+            bare-metal speed as a dedicated inference node.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Arch Workstation · Looking Glass ───────────────────────── -->
+    <section id="workstation" class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-violet-light">⟨</span> Arch Workstation · High-Perf Virtualization <span class="text-violet-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Separate from the cluster: a single <span class="text-slate-light">Arch Linux</span> daily
+            driver (Ryzen 9950X3D · RTX 5090) where <span class="text-slate-light">KVM + VFIO passthrough</span>
+            hands a real GPU to a Windows guest, and <span class="text-slate-light">Looking Glass</span>
+            mirrors it back as a lossless, near bare-metal desktop.
+          </p>
+        </div>
+
+        <!-- Looking Glass runtime data path -->
+        <div class="reveal">
+          <DiagramFrame tone="violet" eyebrow="Arch Linux (KVM + VFIO) → Windows guest · lossless video" title="Looking Glass" scroll={true}>
+            <LookingGlassFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-6 border-t border-dashed border-slate"></span>
+                dotted = keyboard / mouse fed back to the guest · frames are uncompressed, never leave RAM
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The daily driver runs <span class="text-slate-light">Arch Linux</span> as the KVM host.
+            <span class="text-slate-light">VFIO passthrough</span> isolates the GPU's IOMMU group, binds it
+            to <span class="text-slate-light">vfio-pci</span>, and hands it into a q35/OVMF
+            <span class="text-slate-light">Windows guest</span> — so the VM drives a real GPU at close to
+            bare-metal speed.
+          </p>
+          <p>
+            <span class="text-slate-light">Looking Glass</span> then copies each guest frame through an
+            <span class="text-slate-light">IVSHMEM</span> shared-memory region into a client on the Arch
+            host — an uncompressed, low-latency desktop with no video encode and no network hop, so 3D
+            apps and CUDA workloads inside Windows run at effectively bare-metal performance, in a window
+            right alongside Linux.
+          </p>
+        </div>
+
+        <!-- GPU / IOMMU split -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="violet" eyebrow="Why it works · clean IOMMU groups" title="GPU Split: vfio-pci vs host" scroll={true}>
+            <IommuSplitFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#a855f7"></span>
+                isolated → Windows guest
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#64ffda"></span>
+                retained → Arch host
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The split only works because the GPUs land in clean
+            <span class="text-slate-light">IOMMU groups</span>. The discrete
+            <span class="text-slate-light">RTX 5090</span> — and its HDMI-audio function — is stubbed to
+            <span class="text-slate-light">vfio-pci</span> at boot and handed whole to the guest, while the
+            CPU's <span class="text-slate-light">Radeon iGPU</span> keeps the native
+            <span class="text-slate-light">amdgpu</span> driver and drives the Arch desktop, so the host
+            still has a display to render the Looking Glass client into.
+          </p>
+          <p>
+            This is the same approach on both the cluster and the workstation: I
+            <span class="text-slate-light">spec motherboards with proper IOMMU support</span> up front so
+            devices land in clean groups on their own. <span class="text-slate-light">ACS-override
+            patches</span> work and have been reliable enough when I've needed them, but choosing
+            hardware that groups correctly removes the need for them entirely — fewer kernel patches,
+            cleaner upgrades, and predictable passthrough.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Backup & DR ─────────────────────────────────────────────── -->
+    <section id="backup" class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-emerald-light">⟨</span> Backup &amp; Disaster Recovery <span class="text-emerald-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Every dataset rides a <span class="text-slate-light">3-2-1</span> footing — and the restores
+            are tested, not assumed. Each platform has its own chain, all converging on encrypted offsite
+            copies in Wasabi.
+          </p>
+        </div>
+
+        <!-- 3-2-1 explainer -->
+        <div class="rounded-xl border border-emerald-light/30 bg-navy-light/40 p-5 md:p-6 mb-12 reveal"
+          style="box-shadow: 0 0 24px -8px #34d399;">
+          <p class="text-sm uppercase tracking-wider text-emerald-light font-mono mb-3">What 3-2-1 means</p>
+          <ul class="grid sm:grid-cols-3 gap-4 text-slate text-sm leading-relaxed">
+            <li><span class="text-slate-light font-semibold">3 copies</span> — the live data plus two
+              backups, so a single loss is never fatal.</li>
+            <li><span class="text-slate-light font-semibold">2 media types</span> — on-disk ZFS/NVMe and a
+              separate backup appliance (PBS / Synology / Veeam repo), so one failure mode can't take both.</li>
+            <li><span class="text-slate-light font-semibold">1 offsite</span> — a geo-separated, encrypted
+              copy in Wasabi that survives a site-level disaster.</li>
+          </ul>
+          <p class="text-slate text-sm mt-4 pt-4 border-t border-slate-dark/60">
+            The unofficial <span class="text-slate-light">+1</span>: restores are rehearsed on a schedule.
+            A backup you haven't restored is a hope, not a recovery plan.
+          </p>
+        </div>
+
+        <!-- 3-2-1 flow -->
+        <div class="reveal">
+          <DiagramFrame tone="emerald" eyebrow="The rule, visualized" title="3-2-1 Backup Strategy">
+            <BackupStrategyFlow />
+          </DiagramFrame>
+        </div>
+
+        <!-- Arch workstation -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" eyebrow="Daily driver" title="Arch · btrfs / snapper / restic" scroll={true}>
+            <ArchBackupFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                snapper = instant local rollback · restic = encrypted file-level offsite
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Proxmox cluster -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" eyebrow="Cluster + cloud node" title="Proxmox · PBS / ZFS / Wasabi" scroll={true}>
+            <ProxmoxBackupFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                ZFS replication = warm standby · PBS = incremental, deduplicated, encrypted
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Hyper-V / Veeam -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="amber" eyebrow="Hyper-V lab" title="Veeam · image backups → Wasabi" scroll={true}>
+            <VeeamBackupFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                full daily images + incrementals · hot ~45 days · aged points offload to Wasabi
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Encryption -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" eyebrow="Client-side + at rest" title="How the Encryption Works" scroll={true}>
+            <BackupEncryptionFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-6 border-t border-dashed border-slate"></span>
+                dotted = key never leaves the host · provider stores ciphertext only
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The <span class="text-slate-light">Arch daily driver</span> runs btrfs with a flat subvolume
+            layout, and <span class="text-slate-light">snapper</span> keeps an automated ~30-day window of
+            local snapshots — pre/post-pacman and timeline snapshots that make a bad upgrade a one-command
+            rollback. A systemd-timed <span class="text-slate-light">restic</span> job then takes encrypted,
+            file-level copies of <span class="text-slate-light">/home</span> and
+            <span class="text-slate-light">/data</span> to a Synology NAS, which HyperBackup mirrors offsite
+            to Wasabi.
+          </p>
+          <p>
+            The <span class="text-slate-light">Proxmox cluster</span> leans on
+            <span class="text-slate-light">Proxmox Backup Server</span> for incremental, deduplicated,
+            client-encrypted guest backups, with ZFS replication between nodes for warm standby; PBS and the
+            offsite cloud PVE node both sync to Wasabi. The <span class="text-slate-light">Hyper-V lab</span>
+            uses <span class="text-slate-light">Veeam</span> for application-consistent full image backups
+            daily plus incrementals, kept hot locally for ~45 days before older restore points age out to a
+            Wasabi capacity tier.
+          </p>
+          <p>
+            Privacy is non-negotiable: <span class="text-slate-light">restic</span> and
+            <span class="text-slate-light">Veeam</span> encrypt client-side, so keys never leave the host and
+            only ciphertext crosses the wire. Wasabi adds its own encryption at rest and stores everything
+            deduplicated — the provider never holds a key or sees plaintext.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RAID & Redundancy ───────────────────────────────────────── -->
+    <section id="raid" class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-emerald-light">⟨</span> RAID &amp; Redundancy <span class="text-emerald-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Redundancy is the first line of defense — it keeps data online when a disk dies, before any
+            backup is needed. Every tier is built to lose drives without losing data, all of it
+            checksummed and scrubbed against silent corruption.
+          </p>
+        </div>
+
+        <!-- Redundancy tiers -->
+        <div class="reveal">
+          <DiagramFrame tone="emerald" eyebrow="Built to lose disks" title="Storage Redundancy Tiers" scroll={true}>
+            <RaidRedundancyFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#fbbf24"></span>
+                parity (RAIDZ2)
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#22d3ee"></span>
+                mirror (RAID1)
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#34d399"></span>
+                SHR / btrfs
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The primary storage host runs a <span class="text-slate-light">RAIDZ2</span> pool — ZFS
+            double parity, so it can lose <span class="text-slate-light">two drives at once</span> and
+            stay online, which matters most on the wide, high-capacity vdevs where a second disk can fail
+            during a rebuild. The rest of the cluster runs <span class="text-slate-light">ZFS mirrors
+            (RAID1)</span>: each vdev keeps a full copy, so a failed drive resilvers fast from its twin
+            with minimal performance hit — the right trade for the smaller NVMe pools backing VMs.
+          </p>
+          <p>
+            The <span class="text-slate-light">Synology NAS</span> uses
+            <span class="text-slate-light">SHR (Synology Hybrid RAID)</span> — btrfs under the hood — which
+            adds flexible redundancy across <span class="text-slate-light">mixed-size drives</span> (no
+            wasted capacity from matching the smallest disk) plus btrfs block checksums and self-healing.
+            Across all three, <span class="text-slate-light">ZFS and btrfs checksum every block</span> and
+            scheduled scrubs catch and repair bit rot before it spreads. Redundancy isn't a substitute for
+            the 3-2-1 backups above — it's what keeps everything serving while a disk gets replaced.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── GPU Compute & CUDA ──────────────────────────────────────── -->
+    <section id="cuda" class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-violet-light">⟨</span> GPU Compute &amp; CUDA <span class="text-violet-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            The compute substrate under the inference stack: one CUDA toolchain delivered to bare-metal,
+            VMs, and containers alike — then pooled across the cluster so jobs land on whichever GPU is
+            free.
+          </p>
+        </div>
+
+        <!-- CUDA delivered three ways -->
+        <div class="reveal">
+          <DiagramFrame tone="violet" eyebrow="Same toolchain, any context" title="CUDA, Delivered Three Ways" scroll={true}>
+            <CudaDeliveryFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#64ffda"></span>
+                converges on one set of frameworks
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- CUDA across the cluster -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="violet" eyebrow="Pooled compute" title="CUDA Across the Proxmox Cluster" scroll={true}>
+            <CudaClusterFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#a855f7"></span>
+                NVIDIA / CUDA nodes
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#22d3ee"></span>
+                DGX batch nodes
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            CUDA reaches workloads three ways from one toolchain: <span class="text-slate-light">native</span>
+            on the Arch desktop, inside a <span class="text-slate-light">VFIO passthrough guest</span> —
+            the same mechanism that powers Looking Glass, so a VM gets a real GPU with full CUDA — and
+            inside <span class="text-slate-light">containers</span> via the
+            <span class="text-slate-light">NVIDIA Container Toolkit</span>, which injects the GPU and
+            libraries without baking a driver into the image. Every path converges on the same
+            frameworks — <span class="text-slate-light">PyTorch, vLLM, Ollama, and nvcc</span> — so code
+            moves between bare-metal, a VM, and a container unchanged.
+          </p>
+          <p>
+            Across the cluster, GPU work is scheduled to whichever node has the right card free — a full
+            <span class="text-slate-light">RTX 4090</span> for heavy compute, an
+            <span class="text-slate-light">RTX 3070</span> or a pair of
+            <span class="text-slate-light">RTX 2060s</span> for lighter inference and CI, two clustered
+            <span class="text-slate-light">DGX Spark</span> units for batch, and the
+            <span class="text-slate-light">RTX 5090</span> desktop for burst. When several jobs want the
+            same card, <span class="text-slate-light">MIG partitioning and time-slicing</span> share it
+            safely; AMD and iGPU-only nodes stay out of the CUDA pool and take non-CUDA work.
+          </p>
+        </div>
+
+        <!-- ── NVIDIA Container Toolkit ── -->
+        <div class="mt-16 mb-8 text-center reveal">
+          <p class="text-sm uppercase tracking-wider text-violet-light font-mono mb-2">Container GPU sharing</p>
+          <h3 class="text-xl md:text-2xl font-bold text-slate-light mb-2">NVIDIA Container Toolkit</h3>
+          <p class="text-slate max-w-2xl mx-auto">
+            One GPU, many workloads: the toolkit lets dozens of Docker containers share a single card —
+            inside a Proxmox passthrough VM, and on the Arch host bare-metal too.
+          </p>
+        </div>
+
+        <!-- One GPU, many containers -->
+        <div class="reveal">
+          <DiagramFrame tone="violet" eyebrow="One GPU, many containers" title="Single GPU → Docker Fan-Out" scroll={true}>
+            <NvidiaContainerToolkitFlow />
+            <Fragment slot="legend">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#34d399"></span>
+                Docker + NVIDIA Container Toolkit
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background:#64ffda"></span>
+                all containers share one card
+              </span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Where the driver lives -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="violet" eyebrow="Driver placement" title="Where the GPU Driver Lives" scroll={true}>
+            <ContainerDriverSplitFlow />
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            A common pattern is to put one GPU behind a <span class="text-slate-light">Proxmox
+            passthrough VM</span>: the host blacklists <span class="text-slate-light">nouveau and the
+            nvidia driver</span> and binds the card to <span class="text-slate-light">vfio-pci</span>, then
+            hands it whole to a Linux VM running the <span class="text-slate-light">nvidia-open</span>
+            driver. Inside that VM, <span class="text-slate-light">Docker + the NVIDIA Container
+            Toolkit</span> expose the GPU to as many containers as the work needs — PyTorch, Ollama or
+            vLLM, ComfyUI, Jupyter, CI — each requested with a simple
+            <span class="text-slate-light">--gpus all</span>, all sharing the one physical card. It isn't
+            PVE-only either: the same Docker + toolkit setup runs <span class="text-slate-light">on the
+            Arch host bare-metal</span>, sharing the RTX 5090 across containers without a VM in the middle.
+          </p>
+          <p>
+            The win is that the <span class="text-slate-light">GPU driver lives in exactly one
+            place</span> — the VM (or the bare-metal host) — while container images carry
+            <span class="text-slate-light">no driver at all</span>; the toolkit injects the device and
+            matching CUDA libraries at runtime. That keeps images small and portable, lets many isolated
+            environments (different CUDA/Python versions, conflicting deps) run side by side on one card,
+            and turns GPU workflows into disposable, reproducible containers instead of a hand-tuned host.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AI / Inference ──────────────────────────────────────────── -->
+    <section id="ai" class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-violet-light">⟨</span> AI &amp; Inference <span class="text-violet-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Local-first inference on hardware I own, scaled across GPUs and hosts when a model is too
+            big for one card, with cloud as burst capacity behind a provider-agnostic agent harness.
+          </p>
+        </div>
+
+        <!-- GPU fleet -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12 reveal">
+          <DiagramNode tone="violet" variant="solid" glow={true} icon="🎛️" title="RTX 5090" sub="32 GB · Blackwell · Ollama" />
+          <DiagramNode tone="violet" variant="solid" icon="🖥️" title="RTX 4090" sub="24 GB · VFIO VM" />
+          <DiagramNode tone="violet" variant="solid" icon="⚡" title="2× DGX Spark" sub="clustered · 10 GbE" />
+          <DiagramNode tone="violet" icon="🎮" title="3080 / 3070 / 2×2060" sub="cluster GPUs · CI + compute" />
+        </div>
+
+        <!-- vLLM tensor parallel across hosts -->
+        <div class="reveal">
+          <DiagramFrame tone="violet" eyebrow="Scale-out serving" title="vLLM — Tensor Parallel Across Two Hosts">
+            <DiagramLane label="One model, sharded" tone="violet" cols={1} connector={true}>
+              <DiagramNode tone="violet" icon="🧩" title="vLLM · tensor parallelism"
+                sub="weights split across devices on separate systems" />
+            </DiagramLane>
+            <DiagramLane label="GPU pool" tone="violet" cols={2} connector={true}>
+              <DiagramNode tone="violet" variant="solid" icon="🎛️" title="Host A — RTX 5090" sub="32 GB · Blackwell" />
+              <DiagramNode tone="violet" variant="solid" icon="🖥️" title="Host B — RTX 4090" sub="24 GB · VFIO guest" />
+            </DiagramLane>
+            <DiagramLane label="Exposed as" tone="violet" cols={1}>
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="🔗" title="OpenAI-compatible /v1"
+                sub="runs models no single card here could hold" />
+            </DiagramLane>
+            <Fragment slot="legend">
+              <span>Not pooled NVLink memory — model parallelism over the LAN.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- DGX Spark cluster -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="violet" eyebrow="High-throughput" title="2× DGX Spark Cluster">
+            <DiagramLane label="Clustered nodes" tone="violet" cols={2} connector={true}>
+              <DiagramNode tone="violet" variant="solid" icon="⚡" title="DGX Spark #1" sub="10 GbE interconnect" />
+              <DiagramNode tone="violet" variant="solid" icon="⚡" title="DGX Spark #2" sub="10 GbE interconnect" />
+            </DiagramLane>
+            <DiagramLane label="Serving" tone="violet" cols={1}>
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="📈" title="vLLM batch serving"
+                sub="tensor-parallel · concurrent high-throughput workloads" />
+            </DiagramLane>
+          </DiagramFrame>
+        </div>
+
+        <!-- Hermes harness -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="violet" eyebrow="Harness engineering" title="Hermes — Provider-Agnostic Agent Loop">
+            <DiagramLane label="Ordered fallback chain" tone="violet" cols={3} connector={true}>
+              <DiagramNode tone="violet" variant="solid" icon="①" title="Anthropic" sub="primary frontier brain" />
+              <DiagramNode tone="violet" icon="②" title="OpenAI" sub="second cloud model" />
+              <DiagramNode tone="violet" icon="③" title="Ollama (local)" sub="qwen3-coder:30b · zero-cost last resort" />
+            </DiagramLane>
+            <DiagramLane label="Durable harness (survives provider swaps)" tone="violet" cols={2}>
+              <DiagramNode tone="amber" icon="🧠" title="Bounded memory" sub="working set + FTS5 session archive" />
+              <DiagramNode tone="amber" icon="📚" title="Skills" sub="writes reusable procedures → compounds" />
+            </DiagramLane>
+            <Fragment slot="legend">
+              <span>Memory + skills live outside the model — switch providers without losing state.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- OpenAI-compatible fanout -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="violet" eyebrow="One API, many clients" title="OpenAI-Compatible Fanout">
+            <DiagramLane label="Clients" tone="violet" cols={3} connector={true}>
+              <DiagramNode tone="violet" icon="🛠️" title="Claude Code / Codex" sub="agentic dev" />
+              <DiagramNode tone="violet" icon="💻" title="OpenCode" sub="points at local /v1" />
+              <DiagramNode tone="violet" icon="🔄" title="n8n" sub="inference as a workflow step" />
+            </DiagramLane>
+            <DiagramLane label="Endpoints (same client code)" tone="violet" cols={3}>
+              <DiagramNode tone="teal" icon="🏠" title="Local GPUs" sub="Ollama · vLLM" />
+              <DiagramNode tone="teal" icon="⚡" title="DGX cluster" sub="batch serving" />
+              <DiagramNode tone="teal" icon="☁️" title="Frontier APIs" sub="burst only" />
+            </DiagramLane>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            The daily driver is an <span class="text-slate-light">RTX 5090</span> running native
+            <span class="text-slate-light">ollama-cuda</span> with flash attention and a q8_0 KV cache,
+            which keeps a full 64k-token context resident on the card. When a model is too large for a
+            single GPU, <span class="text-slate-light">vLLM tensor parallelism</span> shards the weights
+            across the 5090 and a VFIO-passthrough 4090 on a separate host, and the same approach scales
+            out to a pair of clustered <span class="text-slate-light">DGX Spark</span> units over 10 GbE
+            for high-throughput batch serving.
+          </p>
+          <p>
+            Every endpoint speaks the same <span class="text-slate-light">OpenAI-compatible API</span>,
+            so the same client code points at a local card, the cluster, or a frontier provider without
+            changing a line. On top of that runs <span class="text-slate-light">Hermes</span>, where the
+            harness — instructions, bounded memory, tool orchestration, and a skills loop — matters more
+            than any single model. An ordered fallback chain keeps work moving when an API is down, and
+            because memory and skills live outside the model, providers are swappable without losing a
+            thing.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Security ────────────────────────────────────────────────── -->
+    <section id="security" class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-danger-light">⟨</span> Security <span class="text-danger-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            A distributed CrowdSec engine that turns a detection anywhere into enforcement everywhere,
+            a FortiGate perimeter that consumes it, resilient DNS, and a management plane that lives
+            entirely on Tailscale.
+          </p>
+        </div>
+
+        <!-- Multi-server CrowdSec -->
+        <div class="reveal">
+          <DiagramFrame tone="red" eyebrow="Distributed engine" title="Multi-Server CrowdSec">
+            <DiagramLane label="Detection — log processors" tone="red" cols={3} connector={true}>
+              <DiagramNode tone="red" icon="🧩" title="PVE / Linux hosts" sub="parse logs · match scenarios" />
+              <DiagramNode tone="red" icon="🌐" title="Edge nginx" sub="bouncer + parser" />
+              <DiagramNode tone="red" icon="🔷" title="Azure website" sub="nginx bouncer — sensor + enforce" />
+            </DiagramLane>
+            <DiagramLane label="Central — Local API (single source of truth)" tone="red" cols={1} connector={true}>
+              <DiagramNode tone="red" variant="solid" glow={true} icon="🧠"
+                title="CrowdSec LAPI"
+                sub="10.0.0.23:8080 · Postgres · profiles → decisions · + CAPI &amp; console lists" />
+            </DiagramLane>
+            <DiagramLane label="Enforcement — bouncers" tone="red" cols={3}>
+              <DiagramNode tone="amber" icon="🛡️" title="FortiGate" sub="external threat feed" />
+              <DiagramNode tone="amber" icon="🚧" title="nginx bouncers" sub="edge + Azure" />
+              <DiagramNode tone="amber" icon="🧱" title="PVE firewall" sub="nftables ipset (planned)" />
+            </DiagramLane>
+            <Fragment slot="legend">
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-accent align-middle mr-1.5"></span>All processor ↔ LAPI ↔ bouncer traffic rides Tailscale</span>
+              <span>Log processors share nothing directly — the LAPI unifies the estate</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Threat feed pipeline -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="amber" eyebrow="Detection → enforcement loop" title="Public Threat Feed Pipeline">
+            <DiagramLane label="Inputs" tone="amber" cols={3} connector={true}>
+              <DiagramNode tone="red" icon="📡" title="Edge agents / bouncers" sub="over Tailscale" />
+              <DiagramNode tone="red" icon="🔷" title="Azure site attacks" sub="reported as sensor" />
+              <DiagramNode tone="red" icon="🌍" title="CAPI + console lists" sub="community blocklists" />
+            </DiagramLane>
+            <DiagramLane label="Engine" tone="amber" cols={1} connector={true}>
+              <DiagramNode tone="red" variant="solid" icon="🧠" title="CrowdSec LAPI" sub="union of all decisions · ~75k entries" />
+            </DiagramLane>
+            <DiagramLane label="Mirror — thallium (public DMZ)" tone="amber" cols={1} connector={true}>
+              <DiagramNode tone="amber" icon="🪞" title="blocklist-mirror :41412" sub="bouncer · refresh 10s → nginx (wildcard cert)" />
+            </DiagramLane>
+            <DiagramLane label="Published" tone="amber" cols={1} connector={true}>
+              <DiagramNode tone="amber" variant="solid" glow={true} icon="📄"
+                title="threat.cktechnology.io/crowdsec.txt" sub="public · plaintext IP/CIDR list" />
+            </DiagramLane>
+            <DiagramLane label="Consumed" tone="amber" cols={1}>
+              <DiagramNode tone="teal" variant="solid" icon="🛡️" title="FortiGate external feed (pull)"
+                sub="address object → IPv4 DENY policy" />
+            </DiagramLane>
+            <Fragment slot="legend">
+              <span>An attack on the public Azure site is blocked at the FortiGate for every other service — closed loop.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- DNS failover + Kasm (side by side on desktop) -->
+        <div class="mt-10 grid lg:grid-cols-2 gap-6 items-start">
+          <div class="reveal">
+            <DiagramFrame tone="blue" eyebrow="Resilient resolution" title="DNS + SD-WAN Failover">
+              <DiagramLane label="Clients" tone="blue" cols={1} connector={true}>
+                <DiagramNode tone="blue" icon="💻" title="LAN clients" sub="DNS forced by FortiGate" />
+              </DiagramLane>
+              <DiagramLane label="Resolvers (health-check failover)" tone="blue" cols={2} connector={true}>
+                <DiagramNode tone="blue" variant="solid" icon="🧭" title="Technitium" sub="primary" />
+                <DiagramNode tone="blue" variant="solid" icon="🕳️" title="Pi-hole" sub="secondary" />
+              </DiagramLane>
+              <DiagramLane label="Recursion" tone="blue" cols={1}>
+                <DiagramNode tone="emerald" variant="solid" glow={true} icon="🔎" title="Unbound" sub="recursive · DNSSEC validating" />
+              </DiagramLane>
+              <Fragment slot="legend">
+                <span>FortiGate SD-WAN fails DNS over from one resolver to the other automatically.</span>
+              </Fragment>
+            </DiagramFrame>
+          </div>
+
+          <div class="reveal">
+            <DiagramFrame tone="red" eyebrow="Isolated by design (public)" title="Kasm Workspaces">
+              <DiagramLane tone="red" cols={1} connector={true}>
+                <DiagramNode tone="red" variant="solid" icon="🐉" title="Ephemeral Kali Linux"
+                  sub="disposable pentest containers · external ranges (e.g. TryHackMe) over OpenVPN" />
+              </DiagramLane>
+              <DiagramLane tone="red" cols={1}>
+                <DiagramNode tone="amber" variant="solid" icon="🧪" title="Browser isolation"
+                  sub="browser-in-a-browser · right-click → open in Kasm · safe link detonation" />
+              </DiagramLane>
+              <Fragment slot="legend">
+                <span>Public remote VM — a hacking/sandbox lab kept isolated from the internal estate.</span>
+              </Fragment>
+            </DiagramFrame>
+          </div>
+        </div>
+
+        <!-- Remote access: ScreenConnect (split exposure) -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="red" eyebrow="Remote support · split exposure" title="ScreenConnect (self-hosted on PVE1)">
+            <DiagramLane label="Self-hosted services" tone="red" cols={2} connector={true}>
+              <DiagramNode tone="red" variant="solid" icon="🖧" title="ScreenConnect"
+                sub="ConnectWise Control · PVE1 VM · RMM / remote support" />
+              <DiagramNode tone="violet" icon="📓" title="Hudu"
+                sub="self-hosted docs &amp; runbooks · Tailscale-only" />
+            </DiagramLane>
+            <DiagramLane label="Split exposure" tone="red" cols={2} connector={true}>
+              <DiagramNode tone="amber" variant="solid" icon="📡" title="Relay (screlay) — public"
+                sub="session traffic only · agents/clients connect in" />
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="🔒" title="Web / Admin — Tailscale only"
+                sub="management console never faces the internet" />
+            </DiagramLane>
+            <DiagramLane label="Guardrails + resilience" tone="red" cols={2}>
+              <DiagramNode tone="red" icon="🧱" title="PVE firewall + nftables"
+                sub="DC / node / guest rules · admin hidden behind the tailnet" />
+              <DiagramNode tone="amber" icon="☁️" title="Cloud fallback"
+                sub="cktech.screenconnect.com · if the on-prem instance is down" />
+            </DiagramLane>
+            <Fragment slot="legend">
+              <span>Only the relay is public — the admin console is Tailscale-only, the same split-exposure pattern used across the estate.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Access model band -->
+        <div class="mt-10 rounded-lg border border-accent/30 bg-accent/5 px-5 py-5 text-center reveal" style="box-shadow: 0 0 24px -8px #64ffda;">
+          <p class="text-accent font-mono text-xs uppercase tracking-wider mb-2">Access Model — Everything Over Tailscale</p>
+          <p class="text-slate-light text-sm max-w-3xl mx-auto leading-relaxed">
+            🔗 All infra control-plane comms — CrowdSec LAPI, Wazuh manager &amp; indexer, Grafana,
+            Prometheus, and SSH — ride the Tailscale mesh with strict ACLs and per-session SSH auth.
+            Hosts firewall with <span class="text-slate-light">nftables</span>, SSH is key-only, and the
+            only deliberate public surfaces are the threat-feed endpoint, the isolated Kasm VM, and the
+            ScreenConnect session relay — every admin console stays on the tailnet.
+          </p>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            Security runs as a <span class="text-slate-light">distributed CrowdSec</span> deployment:
+            log processors across the hosts and edge parse logs and ship alerts to a central
+            <span class="text-slate-light">LAPI</span> — a Postgres-backed, LAPI-only Security Engine
+            that is the single source of truth — while bouncers query it for decisions. Because the
+            processors don't talk to each other, the central API is what makes a detection on one box
+            actionable everywhere, and all of that traffic stays on Tailscale.
+          </p>
+          <p>
+            The engine's full decision union — local bans plus the CAPI community feed and console lists,
+            around 75k entries — is mirrored on the public <span class="text-slate-light">thallium</span>
+            box and served as a plaintext list at
+            <span class="text-slate-light">threat.cktechnology.io/crowdsec.txt</span>, which the
+            FortiGate pulls in as an external threat feed and enforces with a DENY policy. An attack on
+            the public Azure website is reported by its bouncer, lands in the feed, and is blocked at the
+            perimeter for every other service — a closed detection-to-enforcement loop. DNS is just as
+            deliberate: Technitium and Pi-hole both front a validating Unbound resolver, with FortiGate
+            SD-WAN failing over between them so name resolution survives a resolver going down.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Observability (Heimdall) ────────────────────────────────── -->
+    <section id="observability" class="section py-16 bg-navy-light/30">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-emerald-light">⟨</span> Observability — Heimdall <span class="text-emerald-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            Two independent pipelines — logs and metrics — plus security overlays, unified in Grafana
+            and reachable only over the tailnet.
+          </p>
+        </div>
+
+        <!-- Log pipeline -->
+        <div class="reveal">
+          <DiagramFrame tone="emerald" scroll={true} eyebrow="Pipeline 1" title="Logs — syslog-ng → Loki">
+            <DiagramLane label="Senders" tone="emerald" cols={3} connector={true}>
+              <DiagramNode tone="emerald" icon="🛡️" title="FortiGate" sub="udp/tcp :5514 · key=value" />
+              <DiagramNode tone="emerald" icon="🐧" title="RFC3164" sub="udp/tcp :514" />
+              <DiagramNode tone="emerald" icon="🐧" title="RFC5424" sub="tcp :601" />
+            </DiagramLane>
+            <DiagramLane label="Ingest — syslog-ng (native)" tone="emerald" cols={1} connector={true}>
+              <DiagramNode tone="emerald" variant="solid" icon="📥" title="syslog-ng"
+                sub="tag source_type / app / host · JSON-escape · disk-buffer" />
+            </DiagramLane>
+            <DiagramLane label="Store" tone="emerald" cols={2} connector={true}>
+              <DiagramNode tone="emerald" variant="solid" icon="🗂️" title="Loki :3100" sub="HTTP push · low-cardinality labels · 30d" />
+              <DiagramNode tone="emerald" icon="🧾" title="/var/log/remote" sub="raw file archive (redundant)" />
+            </DiagramLane>
+            <DiagramLane label="View" tone="emerald" cols={1}>
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="📊" title="Grafana" sub="Loki Explorer · FortiGate dashboards (LogQL logfmt)" />
+            </DiagramLane>
+          </DiagramFrame>
+        </div>
+
+        <!-- Metrics pipeline -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" scroll={true} eyebrow="Pipeline 2" title="Metrics — Exporters → Prometheus">
+            <DiagramLane label="Exporters (file-based SD)" tone="emerald" cols={3} connector={true}>
+              <DiagramNode tone="emerald" icon="🖥️" title="node_exporter" sub="host CPU/mem/disk/net" />
+              <DiagramNode tone="emerald" icon="📦" title="cAdvisor" sub="per-container" />
+              <DiagramNode tone="emerald" icon="🧮" title="Proxmox + edge" sub="targets/*.yml · hot reload" />
+            </DiagramLane>
+            <DiagramLane label="Scrape &amp; store" tone="emerald" cols={1} connector={true}>
+              <DiagramNode tone="emerald" variant="solid" icon="⏱️" title="Prometheus :9090" sub="15s scrape · 30d / 40GB" />
+            </DiagramLane>
+            <DiagramLane label="Outputs" tone="emerald" cols={2}>
+              <DiagramNode tone="amber" variant="solid" icon="🚨" title="Alertmanager :9093" sub="infra.yml rules → routing" />
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="📊" title="Grafana" sub="node + cluster dashboards" />
+            </DiagramLane>
+          </DiagramFrame>
+        </div>
+
+        <!-- Security overlays -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" eyebrow="Overlays" title="Security — CrowdSec &amp; Wazuh">
+            <DiagramLane label="Sources (read-only, over Tailscale)" tone="emerald" cols={2} connector={true}>
+              <DiagramNode tone="red" icon="🧠" title="CrowdSec LAPI :6060" sub="cs_* metrics → Prometheus" />
+              <DiagramNode tone="red" icon="🛰️" title="Wazuh indexer :9200" sub="OpenSearch · wazuh-alerts-4.x" />
+            </DiagramLane>
+            <DiagramLane label="Unified pane" tone="emerald" cols={1}>
+              <DiagramNode tone="teal" variant="solid" glow={true} icon="📊" title="Grafana" sub="CrowdSec Overview · Wazuh SIEM (MITRE)" />
+            </DiagramLane>
+            <Fragment slot="legend">
+              <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-accent align-middle mr-1.5"></span>Dashboards bound to the tailnet — nothing publicly exposed</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
+          <p>
+            <span class="text-slate-light">Heimdall</span> runs two independent pipelines. Logs flow
+            through a native <span class="text-slate-light">syslog-ng</span> that tags each stream with
+            low-cardinality labels and pushes to <span class="text-slate-light">Loki</span> over HTTP,
+            while also writing a raw file archive as a redundant copy; FortiGate gets a dedicated port
+            and its key=value logs are parsed at query time with LogQL. Metrics are pull-based:
+            <span class="text-slate-light">Prometheus</span> scrapes node_exporter, cAdvisor, and the
+            Proxmox and edge hosts via file-based service discovery, so adding a target is a file edit
+            and a hot reload, with alerts routed through Alertmanager.
+          </p>
+          <p>
+            Security telemetry rides alongside as read-only overlays — CrowdSec LAPI metrics into
+            Prometheus and the Wazuh indexer as an OpenSearch datasource — so a single
+            <span class="text-slate-light">Grafana</span> instance covers host health, cluster capacity,
+            firewall traffic, and MITRE-mapped detections. Like the rest of the management plane, every
+            piece of it is reachable only over Tailscale.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Follow the Data ─────────────────────────────────────────── -->
+    <section id="dataflow" class="section py-16">
+      <div class="container-narrow">
+        <div class="mb-8 text-center">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
+            <span class="text-emerald-light">⟨</span> Follow the Data <span class="text-emerald-light">⟩</span>
+          </h2>
+          <p class="text-slate max-w-2xl mx-auto">
+            The same Heimdall pipelines as true flow graphs — branches, merges, labeled and
+            observe-only edges — with animation tracing the direction each stream actually travels.
+          </p>
+        </div>
+
+        <!-- Log pipeline flow -->
+        <div class="reveal">
+          <DiagramFrame tone="emerald" scroll={true} eyebrow="Flow 1" title="Logs — syslog-ng → Loki">
+            <LogPipelineFlow />
+          </DiagramFrame>
+        </div>
+
+        <!-- Metrics pipeline flow -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" scroll={true} eyebrow="Flow 2" title="Metrics — Exporters → Prometheus">
+            <MetricsPipelineFlow />
+            <Fragment slot="legend">
+              <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #f87171;"></span>Dotted = observe-only scrape (CrowdSec LAPI)</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Security overlays flow -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="emerald" scroll={true} eyebrow="Flow 3" title="Security Overlays — CrowdSec &amp; Wazuh">
+            <SecurityOverlayFlow />
+            <Fragment slot="legend">
+              <span>Read-only sources on the left feed Prometheus and Grafana on the right.</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+
+        <!-- Deployment topology flow -->
+        <div class="mt-10 reveal">
+          <DiagramFrame tone="teal" scroll={true} eyebrow="Flow 4" title="Network &amp; Deployment Topology">
+            <DeploymentTopologyFlow />
+            <Fragment slot="legend">
+              <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #64ffda;"></span>Dotted = overlay / copy (Tailnet · conf.d)</span>
+            </Fragment>
+          </DiagramFrame>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section text-center">
+      <div class="container-narrow">
+        <h2 class="text-2xl font-bold text-slate-light mb-4">Need This Kind of Infrastructure?</h2>
+        <p class="text-slate mb-6 max-w-xl mx-auto">
+          From Proxmox clusters and FortiGate edges to private AI, distributed security, and full
+          observability — I design and operate resilient systems end to end.
+        </p>
+        <div class="flex justify-center gap-4">
+          <a href="/#contact" class="btn btn-primary">Get In Touch</a>
+          <a href="/lab" class="btn btn-secondary">View the Lab</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="py-8 text-center">
+    <p class="text-slate text-sm font-mono">
+      <a href="/" class="text-accent hover:underline">← Back to Home</a>
+    </p>
+  </footer>
+</BaseLayout>

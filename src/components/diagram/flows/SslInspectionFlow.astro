@@ -1,0 +1,101 @@
+---
+// FortiGate Full (deep) SSL Inspection — the controlled man-in-the-middle.
+// The FortiGate terminates two separate TLS sessions: it presents the client a
+// cert re-signed by its own CA (CKEL_ROOT_CA, trusted by endpoints) while
+// validating the origin's real cert, decrypting in the middle for inspection.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  CLIENT: { x: 20, y: 96, w: 200, title: 'Client / Browser', subs: ['trusts CKEL_ROOT_CA'] },
+  FG: { x: 360, y: 96, w: 260, title: 'FortiGate — Full SSL', subs: ['decrypt → inspect → re-encrypt', 'two independent TLS sessions'], glow: true },
+  SERVER: { x: 760, y: 96, w: 200, title: 'Origin Server', subs: ['real cert validated'] },
+  INSPECT: { x: 355, y: 210, w: 270, title: 'Plaintext inspection', subs: ['IPS · AV · AppCtrl · WebFilter · DLP'], node: '#fbbf24' },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+interface FlowEdge { a: Pt; b: Pt; label?: string[]; dot?: boolean; }
+const tunnels: FlowEdge[] = [
+  { a: right('CLIENT'), b: left('FG'), label: ['TLS session 1', 're-signed cert (FortiGate CA)'] },
+  { a: right('FG'), b: left('SERVER'), label: ['TLS session 2', 'real cert · CA-store check'] },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const mx = (e.a.x + e.b.x) / 2;
+  const my = (e.a.y + e.b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#22d3ee; --edge:#3a8aa0;">
+  <svg class="flow-svg" viewBox="0 0 980 300" role="img" aria-labelledby="ssl-title ssl-desc">
+    <title id="ssl-title">FortiGate full SSL inspection as a controlled man-in-the-middle</title>
+    <desc id="ssl-desc">
+      The FortiGate sits between client and origin, terminating two separate TLS sessions. It
+      presents the client a certificate re-signed by its own CKEL_ROOT_CA (trusted by managed
+      endpoints) while validating the origin's real certificate, decrypting traffic in the middle
+      so it can run IPS, antivirus, application control, web filtering and DLP before re-encrypting.
+    </desc>
+    <defs>
+      <marker id="arrow-ssl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {tunnels.map((e) => (
+      <path class="flow-edge" d={hpath(e.a, e.b)} marker-end="url(#arrow-ssl)" />
+    ))}
+    <path class="flow-edge flow-edge--dot" d={vpath(bottom('FG'), top('INSPECT'))} marker-end="url(#arrow-ssl)" />
+
+    {tunnels.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

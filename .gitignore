@@ -1,23 +1,32 @@
-# Dependencies
+# dependencies
 node_modules/
 
-# Build output
+# build output
 dist/
-
-# Astro
 .astro/
 
-# Design source scratch (unreferenced logos/mockups, not used by the build)
+# design-scratch / raw source images (not served)
 assets/
 
-# Environment
+# environment
 .env
 .env.*
+!.env.example
 
-# IDE
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# editor / OS
+.DS_Store
 .vscode/
 .idea/
-
-# OS
-.DS_Store
+*.swp
 Thumbs.db
+
+# misc
+.cache/
+.turbo/

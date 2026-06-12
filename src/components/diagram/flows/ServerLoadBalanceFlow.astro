@@ -1,0 +1,102 @@
+---
+// FortiGate Server Load Balancing (SLB): a Virtual Server VIP terminates client
+// HTTPS (SSL offload), health-checks a backend pool, and distributes across the
+// DMZ30 nginx real servers with persistence — classic enterprise SLB.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  CLIENTS: { x: 20, y: 122, w: 180, title: 'Clients', subs: ['Internet · HTTPS'] },
+  VS: { x: 300, y: 108, w: 250, title: 'Virtual Server (VIP)', subs: ['WAN1 · SSL offload', 'persistence · health monitor', 'round-robin / least-conn'], glow: true },
+  R1: { x: 680, y: 44, w: 205, title: 'web-01 · nginx', subs: ['10.0.30.7'] },
+  R2: { x: 680, y: 150, w: 205, title: 'web-02 · nginx', subs: ['10.0.30.8'] },
+  R3: { x: 680, y: 256, w: 205, title: 'web-03 · nginx', subs: ['10.0.30.9'] },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const edges: FlowEdge[] = [
+  { from: 'CLIENTS', to: 'VS', label: ['VIP :443'] },
+  { from: 'VS', to: 'R1' },
+  { from: 'VS', to: 'R2' },
+  { from: 'VS', to: 'R3' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#22d3ee; --edge:#3a8aa0;">
+  <svg class="flow-svg" viewBox="0 0 920 360" role="img" aria-labelledby="slb-title slb-desc">
+    <title id="slb-title">FortiGate server load balancing to a backend pool</title>
+    <desc id="slb-desc">
+      Clients reach a FortiGate Virtual Server VIP on :443 that offloads SSL, applies persistence
+      and a health monitor, and distributes connections across three nginx real servers in the
+      DMZ30 pool using round-robin or least-connections.
+    </desc>
+    <defs>
+      <marker id="arrow-slb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <rect class="flow-group" x="663" y="22" width="242" height="318" rx="10" />
+    <text class="flow-group-label" x="679" y="42">DMZ30 real-server pool</text>
+
+    {edges.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-slb)" />
+    ))}
+
+    {edges.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

@@ -1,0 +1,123 @@
+---
+// Log pipeline (syslog-ng → Loki), recreating the heimdall `flowchart TD`.
+// 3 senders → sources → rewrites → ESC merge → D1/D2 branch → Loki → Grafana,
+// with the syslog-ng "native" subgraph box. Tone: emerald; terminal nodes teal.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string; // per-node --node hex override
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  // senders
+  A2: { x: 30, y: 16, w: 180, title: 'RFC3164 senders', subs: ['udp/tcp :514'] },
+  A3: { x: 250, y: 16, w: 180, title: 'RFC5424 senders', subs: ['tcp :601'] },
+  A1: { x: 600, y: 16, w: 190, title: 'FortiGate', subs: ['udp/tcp :5514'] },
+  // sources (inside subgraph)
+  S1: { x: 120, y: 122, w: 220, title: 'source s_net_standard' },
+  S2: { x: 575, y: 122, w: 220, title: 'source s_fortigate', subs: ['flags(no-hostname)'] },
+  // rewrites
+  R1: { x: 120, y: 224, w: 220, title: 'rewrite r_tag_standard', subs: ['source_type=syslog', 'app=PROGRAM'] },
+  R2: { x: 575, y: 224, w: 220, title: 'rewrite r_tag_fortigate', subs: ['source_type=fortigate', 'app=firewall'] },
+  // merge
+  ESC: { x: 335, y: 348, w: 240, title: 'rewrite r_loki_escape', subs: ['JSON-escape message'] },
+  // branch destinations
+  D1: { x: 175, y: 452, w: 230, title: 'destination d_loki', subs: ['http POST /loki/api/v1/push', 'batch 300 / 2000ms', 'disk-buffer 512MB reliable'] },
+  D2: { x: 470, y: 452, w: 240, title: 'destination d_remote_files', subs: ['/var/log/remote/HOST/PROGRAM.log'] },
+  // terminals (outside subgraph)
+  LOKI: { x: 185, y: 596, w: 200, title: 'Loki :3100', node: '#64ffda', glow: true },
+  GR: { x: 165, y: 690, w: 240, title: 'Grafana', subs: ['Loki Explorer · FortiGate dashboards'], node: '#64ffda', glow: true },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+
+type Pt = { x: number; y: number };
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+interface FlowEdge {
+  from: string;
+  to: string;
+  dot?: boolean;
+}
+const edges: FlowEdge[] = [
+  { from: 'A1', to: 'S2' },
+  { from: 'A2', to: 'S1' },
+  { from: 'A3', to: 'S1' },
+  { from: 'S1', to: 'R1' },
+  { from: 'S2', to: 'R2' },
+  { from: 'R1', to: 'ESC' },
+  { from: 'R2', to: 'ESC' },
+  { from: 'ESC', to: 'D1' },
+  { from: 'ESC', to: 'D2' },
+  { from: 'D1', to: 'LOKI' },
+  { from: 'LOKI', to: 'GR' },
+];
+
+// First-line baseline so the text block is vertically centered in the node.
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+---
+
+<div class="flow-wrap" style="--node:#34d399; --edge:#3a9c81;">
+  <svg
+    class="flow-svg"
+    viewBox="0 0 820 750"
+    role="img"
+    aria-labelledby="logflow-title logflow-desc"
+  >
+    <title id="logflow-title">Log pipeline: syslog senders to syslog-ng to Loki to Grafana</title>
+    <desc id="logflow-desc">
+      FortiGate, RFC3164 and RFC5424 senders feed two syslog-ng sources, which tag and
+      rewrite streams that merge into a JSON-escape step, then branch to the Loki HTTP
+      destination and a redundant on-disk file archive. Loki is visualized in Grafana.
+    </desc>
+    <defs>
+      <marker id="arrow-log" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <!-- syslog-ng subgraph box -->
+    <rect class="flow-group" x="80" y="100" width="730" height="450" rx="10" />
+    <text class="flow-group-label" x="96" y="120">syslog-ng (native)</text>
+
+    <!-- edges -->
+    {edges.map((e) => (
+      <path
+        class={`flow-edge${e.dot ? ' flow-edge--dot' : ''}`}
+        d={vpath(bottom(e.from), top(e.to))}
+        marker-end="url(#arrow-log)"
+      />
+    ))}
+
+    <!-- nodes -->
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect
+          class={`flow-node${n.glow ? ' flow-node--glow' : ''}`}
+          x={n.x}
+          y={n.y}
+          width={n.w}
+          height={h(n)}
+          rx="8"
+        />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

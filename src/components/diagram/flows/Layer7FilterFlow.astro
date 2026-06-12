@@ -1,0 +1,80 @@
+---
+// Layer 7 (application-layer) filtering. Once traffic is decrypted, the L7 engine
+// fans the payload out to FortiGate's inspection modules in parallel, then a
+// single policy verdict (allow / block / log / shape) is applied.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  IN: { x: 350, y: 16, w: 200, title: 'Decrypted L7 payload', subs: ['application-layer data'] },
+  ENG: { x: 340, y: 140, w: 220, title: 'L7 inspection engine', subs: ['deep packet inspection'] },
+  AC: { x: 15, y: 274, w: 135, title: 'App Control', subs: ['apps · any port'], node: '#3b82f6' },
+  WF: { x: 160, y: 274, w: 135, title: 'Web Filter', subs: ['URL / category'], node: '#3b82f6' },
+  IPS: { x: 305, y: 274, w: 135, title: 'IPS', subs: ['exploit sigs'], node: '#f87171' },
+  AV: { x: 450, y: 274, w: 135, title: 'Antivirus', subs: ['file / malware'], node: '#f87171' },
+  DNSF: { x: 595, y: 274, w: 135, title: 'DNS Filter', subs: ['domain category'], node: '#a855f7' },
+  DLP: { x: 740, y: 274, w: 145, title: 'DLP', subs: ['data patterns'], node: '#fbbf24' },
+  VERDICT: { x: 320, y: 400, w: 260, title: 'Policy verdict', subs: ['allow · block · log · shape'], node: '#64ffda', glow: true },
+};
+
+const inspectors = ['AC', 'WF', 'IPS', 'AV', 'DNSF', 'DLP'];
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+
+type Pt = { x: number; y: number };
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+const edges = [
+  { from: 'IN', to: 'ENG' },
+  ...inspectors.map((id) => ({ from: 'ENG', to: id })),
+  ...inspectors.map((id) => ({ from: id, to: 'VERDICT' })),
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+---
+
+<div class="flow-wrap" style="--node:#22d3ee; --edge:#3a8aa0;">
+  <svg class="flow-svg" viewBox="0 0 900 470" role="img" aria-labelledby="l7-title l7-desc">
+    <title id="l7-title">FortiGate Layer 7 application-layer filtering</title>
+    <desc id="l7-desc">
+      After decryption, the Layer 7 inspection engine fans the application-layer payload out to
+      parallel modules — application control, web filtering, IPS, antivirus, DNS filtering and DLP —
+      and the combined result drives a single policy verdict to allow, block, log or shape the flow.
+    </desc>
+    <defs>
+      <marker id="arrow-l7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {edges.map((e) => (
+      <path class="flow-edge" d={vpath(bottom(e.from), top(e.to))} marker-end="url(#arrow-l7)" />
+    ))}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

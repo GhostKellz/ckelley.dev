@@ -1,0 +1,111 @@
+---
+// Metrics pipeline (exporters → Prometheus), recreating the heimdall `flowchart TD`.
+// 7 exporters fan-in to Prometheus (CrowdSec LAPI as a dotted, observe-only edge),
+// then Prometheus → alerts/infra.yml → Alertmanager and Prometheus → Grafana.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  // exporters (fan-in)
+  NE: { x: 15, y: 16, w: 145, title: 'node_exporter :9100', subs: ['host CPU/mem/disk/net'] },
+  CAD: { x: 170, y: 16, w: 145, title: 'cAdvisor :8085', subs: ['per-container'] },
+  LOKIm: { x: 325, y: 16, w: 145, title: 'Loki :3100', subs: ['/metrics'] },
+  SELF: { x: 480, y: 16, w: 145, title: 'Prometheus self', subs: [':9090'] },
+  PVEn: { x: 635, y: 16, w: 150, title: 'Proxmox exporters', subs: ['file-SD proxmox-*.yml'] },
+  EXTRA: { x: 795, y: 16, w: 145, title: 'Edge hosts', subs: ['file-SD node-*.yml'] },
+  CSm: { x: 950, y: 16, w: 150, title: 'CrowdSec LAPI', subs: ['10.0.0.23:6060'], node: '#f87171' },
+  // engine
+  P: { x: 410, y: 200, w: 280, title: 'Prometheus :9090', subs: ['15s scrape · 30d / 40GB'], node: '#64ffda', glow: true },
+  // outputs
+  RULES: { x: 150, y: 330, w: 320, title: 'alerts/infra.yml', subs: ['TargetDown · NodeHighCpu', 'NodeHighMemory · NodeDiskFillingUp', 'CrowdsecScraperDown'] },
+  GR: { x: 640, y: 330, w: 260, title: 'Grafana dashboards', subs: ['node + cluster panels'], node: '#64ffda', glow: true },
+  AM: { x: 200, y: 470, w: 220, title: 'Alertmanager :9093', subs: ['infra.yml → routing'], node: '#fbbf24' },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+
+type Pt = { x: number; y: number };
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+interface FlowEdge {
+  from: string;
+  to: string;
+  dot?: boolean;
+}
+const edges: FlowEdge[] = [
+  { from: 'NE', to: 'P' },
+  { from: 'CAD', to: 'P' },
+  { from: 'LOKIm', to: 'P' },
+  { from: 'SELF', to: 'P' },
+  { from: 'PVEn', to: 'P' },
+  { from: 'EXTRA', to: 'P' },
+  { from: 'CSm', to: 'P', dot: true },
+  { from: 'P', to: 'RULES' },
+  { from: 'P', to: 'GR' },
+  { from: 'RULES', to: 'AM' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+---
+
+<div class="flow-wrap" style="--node:#34d399; --edge:#3a9c81;">
+  <svg
+    class="flow-svg"
+    viewBox="0 0 1115 540"
+    role="img"
+    aria-labelledby="metricsflow-title metricsflow-desc"
+  >
+    <title id="metricsflow-title">Metrics pipeline: exporters to Prometheus to Alertmanager and Grafana</title>
+    <desc id="metricsflow-desc">
+      Seven exporters fan in to Prometheus, with the CrowdSec LAPI scraped over a dotted
+      observe-only edge. Prometheus evaluates infra.yml rules that route to Alertmanager,
+      and feeds Grafana dashboards.
+    </desc>
+    <defs>
+      <marker id="arrow-metrics" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {edges.map((e) => (
+      <path
+        class={`flow-edge${e.dot ? ' flow-edge--dot' : ''}`}
+        d={vpath(bottom(e.from), top(e.to))}
+        marker-end="url(#arrow-metrics)"
+      />
+    ))}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect
+          class={`flow-node${n.glow ? ' flow-node--glow' : ''}`}
+          x={n.x}
+          y={n.y}
+          width={n.w}
+          height={h(n)}
+          rx="8"
+        />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

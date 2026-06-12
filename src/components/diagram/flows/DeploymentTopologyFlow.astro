@@ -1,0 +1,132 @@
+---
+// Network & deployment topology, recreating the heimdall `flowchart TB`.
+// Workstation/repo → rsync → /opt/heimdall → docker compose → core containers;
+// repo -.copy conf.d.-> syslog-ng conf.d; LAN grouping; Tailnet 100.x -.-> stack.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  REPO: { x: 270, y: 44, w: 240, title: '~/arch/heimdall-stack', subs: ['source of truth'] },
+  OPT: { x: 290, y: 178, w: 200, title: '/opt/heimdall', subs: ['on Heimdall'] },
+  TS: { x: 40, y: 186, w: 160, title: 'Tailnet 100.x' },
+  STACK: { x: 160, y: 362, w: 220, title: 'core containers', subs: ['docker compose stack'], glow: true },
+  SNGHOST: { x: 420, y: 362, w: 215, title: '/etc/syslog-ng/conf.d', subs: ['native'] },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+
+type Pt = { x: number; y: number };
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+interface FlowEdge {
+  from: string;
+  to: string;
+  dot?: boolean;
+  label?: string[];
+}
+const edges: FlowEdge[] = [
+  { from: 'REPO', to: 'OPT', label: ['rsync (deploy.sh)'] },
+  { from: 'OPT', to: 'STACK', label: ['docker compose up -d'] },
+  { from: 'REPO', to: 'SNGHOST', dot: true, label: ['copy conf.d/*'] },
+  { from: 'TS', to: 'STACK', dot: true },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = bottom(e.from);
+  const b = top(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  const w = longest * 5.4 + 14;
+  const ht = lines.length * 12 + 8;
+  return { mx, my, w, ht, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#64ffda; --edge:#3f8f86;">
+  <svg
+    class="flow-svg"
+    viewBox="0 0 680 470"
+    role="img"
+    aria-labelledby="deployflow-title deployflow-desc"
+  >
+    <title id="deployflow-title">Deployment topology: workstation repo to Heimdall over LAN and tailnet</title>
+    <desc id="deployflow-desc">
+      The repo on the workstation is rsynced to /opt/heimdall, brought up with docker compose
+      as core containers, and its conf.d is copied to the native syslog-ng directory. The stack
+      and syslog-ng live on the LAN, with the tailnet reaching the stack over a dotted overlay.
+    </desc>
+    <defs>
+      <marker id="arrow-deploy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <!-- Workstation subgraph -->
+    <rect class="flow-group" x="240" y="20" width="300" height="80" rx="10" />
+    <text class="flow-group-label" x="256" y="38">Workstation (Arch)</text>
+
+    <!-- LAN subgraph -->
+    <rect class="flow-group" x="120" y="332" width="540" height="116" rx="10" />
+    <text class="flow-group-label" x="136" y="350">LAN 10.0.0.0/24 + 10.10.10.0/24</text>
+
+    <!-- edges -->
+    {edges.map((e) => (
+      <path
+        class={`flow-edge${e.dot ? ' flow-edge--dot' : ''}`}
+        d={vpath(bottom(e.from), top(e.to))}
+        marker-end="url(#arrow-deploy)"
+      />
+    ))}
+
+    <!-- edge labels -->
+    {edges.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    <!-- nodes -->
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect
+          class={`flow-node${n.glow ? ' flow-node--glow' : ''}`}
+          x={n.x}
+          y={n.y}
+          width={n.w}
+          height={h(n)}
+          rx="8"
+        />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

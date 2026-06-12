@@ -1,0 +1,109 @@
+---
+// How the backups stay private: encryption is applied client-side. restic and
+// Veeam encrypt every block on the host with keys that never leave it, so only
+// ciphertext travels (over TLS) to Wasabi — which adds its own server-side
+// encryption at rest and stores the data deduplicated. The provider never holds
+// a key or sees plaintext.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  PLAIN: { x: 20, y: 132, w: 200, title: 'Plaintext data', subs: ['VMs · files · images'] },
+  ENC: { x: 300, y: 122, w: 240, title: 'Client-side encrypt', subs: ['AES-256 on host', 'before it leaves'] },
+  WAS: { x: 730, y: 132, w: 230, title: 'Wasabi · at rest', subs: ['server-side encryption', 'dedup · ciphertext only'], node: '#64ffda', glow: true },
+  KEY: { x: 330, y: 12, w: 200, title: 'Encryption key', subs: ['restic / Veeam', 'client-held'], node: '#fbbf24' },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const flows: FlowEdge[] = [
+  { from: 'PLAIN', to: 'ENC', label: ['read'] },
+  { from: 'ENC', to: 'WAS', label: ['ciphertext · TLS'] },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#34d399; --edge:#3a9c81;">
+  <svg class="flow-svg" viewBox="0 0 980 320" role="img" aria-labelledby="enc-title enc-desc">
+    <title id="enc-title">Client-side encryption with encryption at rest</title>
+    <desc id="enc-desc">
+      restic and Veeam encrypt data on the host with keys that never leave it, so only ciphertext
+      travels over TLS to Wasabi, which adds its own server-side encryption at rest and stores the
+      data deduplicated. The provider never holds a key or sees plaintext.
+    </desc>
+    <defs>
+      <marker id="arrow-enc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {flows.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-enc)" />
+    ))}
+
+    <g style="--edge:#9c7d3a">
+      <path class="flow-edge flow-edge--dot" d={vpath(bottom('KEY'), top('ENC'))} marker-end="url(#arrow-enc)" />
+    </g>
+    <text class="flow-edge-label" x={cx(N.KEY) + 96} y={cy(N.KEY) + 60} text-anchor="middle">key stays client-side</text>
+
+    {flows.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    <text class="flow-sub" x="490" y="296" text-anchor="middle">Wasabi only ever stores ciphertext — no provider-held keys, no plaintext</text>
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

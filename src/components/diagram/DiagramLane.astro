@@ -1,0 +1,53 @@
+---
+// A labeled band of nodes (responsive grid) with an optional animated
+// dataflow connector rendered beneath it.
+type Tone = 'teal' | 'aqua' | 'violet' | 'red' | 'amber' | 'blue' | 'emerald' | 'slate';
+
+interface Props {
+  label?: string;
+  tone?: Tone;
+  cols?: 1 | 2 | 3 | 4 | 5;
+  connector?: boolean;
+  class?: string;
+}
+
+const {
+  label,
+  tone = 'teal',
+  cols = 3,
+  connector = false,
+  class: className = '',
+} = Astro.props;
+
+const colClass: Record<number, string> = {
+  1: 'md:grid-cols-1',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'md:grid-cols-4',
+  5: 'md:grid-cols-5',
+};
+
+const hex: Record<Tone, string> = {
+  teal: '#64ffda',
+  aqua: '#22d3ee',
+  violet: '#a855f7',
+  red: '#f87171',
+  amber: '#fbbf24',
+  blue: '#3b82f6',
+  emerald: '#34d399',
+  slate: '#8892b0',
+};
+---
+
+<div class={className}>
+  {label && (
+    <p class="text-center text-slate-dark text-xs font-mono uppercase tracking-wider mb-3">
+      {label}
+    </p>
+  )}
+  <div class={`grid grid-cols-1 ${colClass[cols]} gap-3 md:gap-4`}>
+    <slot />
+  </div>
+</div>
+
+{connector && <div class="diagram-conn" style={`--flow:${hex[tone]}`} aria-hidden="true"></div>}

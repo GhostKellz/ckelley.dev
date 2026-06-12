@@ -1,0 +1,121 @@
+---
+// Looking Glass on the Arch workstation: a Windows guest gets a real GPU via VFIO
+// passthrough, so 3D apps and CUDA run at near bare-metal speed. Instead of an
+// emulated display, the guest renders to its passthrough GPU; the Looking Glass
+// host app copies each frame into an IVSHMEM shared-memory region, and the Looking
+// Glass client on the host reads it straight from RAM — a lossless, uncompressed
+// desktop with no video encode and no network hop. Input is fed back to the guest.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  GUEST: { x: 20, y: 116, w: 200, title: 'Windows guest', subs: ['q35 · OVMF', 'passthrough GPU'], node: '#a855f7' },
+  CAP: { x: 255, y: 116, w: 200, title: 'LG host app', subs: ['captures framebuffer', 'runs in guest'] },
+  SHM: { x: 490, y: 106, w: 190, title: 'IVSHMEM', subs: ['shared memory', 'zero-copy frames'], node: '#22d3ee', glow: true },
+  CLIENT: { x: 715, y: 116, w: 200, title: 'LG client', subs: ['runs on host', 'reads from RAM'] },
+  DISP: { x: 950, y: 116, w: 210, title: 'Arch host desktop', subs: ['lossless · ~no latency', 'high-perf Windows apps'], node: '#64ffda', glow: true },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const flows: FlowEdge[] = [
+  { from: 'GUEST', to: 'CAP', label: ['render'] },
+  { from: 'CAP', to: 'SHM', label: ['write frames'] },
+  { from: 'SHM', to: 'CLIENT', label: ['read frames'] },
+  { from: 'CLIENT', to: 'DISP' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+
+// Input return path (keyboard / mouse) routed below the row, host → guest.
+const ib = bottom('CLIENT');
+const gb = bottom('GUEST');
+const inputY = 250;
+const inputPath = `M ${ib.x} ${ib.y} C ${ib.x} ${inputY}, ${gb.x} ${inputY}, ${gb.x} ${gb.y}`;
+---
+
+<div class="flow-wrap" style="--node:#3b82f6; --edge:#3a5a8a;">
+  <svg class="flow-svg" viewBox="0 0 1180 290" role="img" aria-labelledby="lg-title lg-desc">
+    <title id="lg-title">Looking Glass with VFIO GPU passthrough on the Arch workstation</title>
+    <desc id="lg-desc">
+      A Windows guest gets a real GPU via VFIO passthrough, so 3D apps and CUDA run at near bare-metal
+      speed. The guest renders to its passthrough GPU; the Looking Glass host app copies each frame into
+      an IVSHMEM shared-memory region, and the Looking Glass client on the host reads it straight from
+      RAM — a lossless desktop with no video encode and no network hop. Keyboard and mouse input is fed
+      back into the guest.
+    </desc>
+    <defs>
+      <marker id="arrow-lg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <rect class="flow-group" x="8" y="96" width="455" height="116" rx="10" />
+    <text class="flow-group-label" x="24" y="116">Windows guest VM</text>
+    <rect class="flow-group" x="703" y="96" width="465" height="116" rx="10" />
+    <text class="flow-group-label" x="719" y="116">Arch Linux host · KVM + VFIO</text>
+
+    {flows.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-lg)" />
+    ))}
+
+    <g style="--edge:#a855f7">
+      <path class="flow-edge flow-edge--dot" d={inputPath} marker-end="url(#arrow-lg)" />
+    </g>
+    <text class="flow-edge-label" x={(ib.x + gb.x) / 2} y={inputY + 16} text-anchor="middle">input · keyboard / mouse</text>
+
+    {flows.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

@@ -1,0 +1,112 @@
+---
+// Storage redundancy tiers. A primary storage host runs a RAIDZ2 pool (double
+// parity, survives two simultaneous drive losses); the rest of the cluster runs
+// ZFS mirrors (RAID1, survives one drive per vdev, fast resilver); and the
+// Synology NAS runs SHR — btrfs under the hood — for flexible mixed-drive
+// redundancy with block checksums. Each row ends in what it can lose and stay
+// online; all of it is checksummed and scrubbed to catch silent corruption.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  R1D: { x: 24, y: 44, w: 220, title: 'Storage host', subs: ['6× NVMe / SAS', 'one big pool'], node: '#3b82f6' },
+  R1S: { x: 360, y: 44, w: 250, title: 'RAIDZ2', subs: ['double parity', '2 parity drives'], node: '#fbbf24' },
+  R1O: { x: 770, y: 44, w: 230, title: 'Survives 2 drives', subs: ['lost at once', 'no downtime'], node: '#64ffda', glow: true },
+  R2D: { x: 24, y: 158, w: 220, title: 'Cluster nodes', subs: ['2× NVMe each', 'per-node pool'], node: '#3b82f6' },
+  R2S: { x: 360, y: 158, w: 250, title: 'ZFS mirror · RAID1', subs: ['full copy per vdev', 'fast resilver'], node: '#22d3ee' },
+  R2O: { x: 770, y: 158, w: 230, title: 'Survives 1 drive', subs: ['per mirror', 'rebuild from twin'], node: '#64ffda', glow: true },
+  R3D: { x: 24, y: 272, w: 220, title: 'Synology NAS', subs: ['mixed-size drives', 'backup target'], node: '#3b82f6' },
+  R3S: { x: 360, y: 272, w: 250, title: 'SHR · btrfs', subs: ['flexible redundancy', 'block checksums'], node: '#34d399' },
+  R3O: { x: 770, y: 272, w: 230, title: 'Survives 1 drive', subs: ['+ bit-rot detection', 'self-healing'], node: '#64ffda', glow: true },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const flows: FlowEdge[] = [
+  { from: 'R1D', to: 'R1S', label: ['parity'] },
+  { from: 'R1S', to: 'R1O' },
+  { from: 'R2D', to: 'R2S', label: ['mirror'] },
+  { from: 'R2S', to: 'R2O' },
+  { from: 'R3D', to: 'R3S', label: ['hybrid'] },
+  { from: 'R3S', to: 'R3O' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#34d399; --edge:#3a9c81;">
+  <svg class="flow-svg" viewBox="0 0 1024 368" role="img" aria-labelledby="raid-title raid-desc">
+    <title id="raid-title">Storage redundancy tiers</title>
+    <desc id="raid-desc">
+      A primary storage host runs a RAIDZ2 pool with double parity that survives two simultaneous drive
+      losses; the rest of the cluster runs ZFS mirrors (RAID1) that survive one drive per vdev with fast
+      resilver; and the Synology NAS runs SHR — btrfs under the hood — for flexible mixed-drive
+      redundancy with block checksums and bit-rot self-healing. Everything is checksummed and scrubbed
+      to catch silent corruption.
+    </desc>
+    <defs>
+      <marker id="arrow-raid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {flows.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-raid)" />
+    ))}
+
+    {flows.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+
+    <text class="flow-sub" x="512" y="360" text-anchor="middle">ZFS &amp; btrfs checksum every block — scheduled scrubs catch and repair silent corruption before it spreads</text>
+  </svg>
+</div>

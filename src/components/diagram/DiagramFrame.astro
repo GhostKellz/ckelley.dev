@@ -1,0 +1,71 @@
+---
+// Outer frame for a diagram: titled card with a tone-tinted top accent,
+// a horizontal-scroll wrapper for narrow screens, and an optional legend slot.
+type Tone = 'teal' | 'aqua' | 'violet' | 'red' | 'amber' | 'blue' | 'emerald' | 'slate';
+
+interface Props {
+  title?: string;
+  eyebrow?: string;
+  tone?: Tone;
+  scroll?: boolean;
+  class?: string;
+}
+
+const {
+  title,
+  eyebrow,
+  tone = 'teal',
+  scroll = false,
+  class: className = '',
+} = Astro.props;
+
+const topAccent: Record<Tone, string> = {
+  teal: 'from-accent/60',
+  aqua: 'from-aqua-light/60',
+  violet: 'from-violet/60',
+  red: 'from-danger/60',
+  amber: 'from-amber/60',
+  blue: 'from-blue/60',
+  emerald: 'from-emerald/60',
+  slate: 'from-slate-dark/60',
+};
+const eyebrowColor: Record<Tone, string> = {
+  teal: 'text-accent',
+  aqua: 'text-aqua-light',
+  violet: 'text-violet-light',
+  red: 'text-danger-light',
+  amber: 'text-amber-light',
+  blue: 'text-blue-light',
+  emerald: 'text-emerald-light',
+  slate: 'text-slate-light',
+};
+const hasLegend = Astro.slots.has('legend');
+---
+
+<div class={`relative overflow-hidden rounded-xl border border-slate-dark/30 bg-navy-light/60 ${className}`}>
+  <div class={`h-0.5 w-full bg-gradient-to-r ${topAccent[tone]} to-transparent`} aria-hidden="true"></div>
+  <div class="p-5 md:p-8">
+    {(eyebrow || title) && (
+      <div class="mb-5 text-center">
+        {eyebrow && <p class={`font-mono text-xs uppercase tracking-wider ${eyebrowColor[tone]}`}>{eyebrow}</p>}
+        {title && <h3 class="text-slate-light font-semibold text-lg mt-1">{title}</h3>}
+      </div>
+    )}
+
+    {scroll ? (
+      <div class="overflow-x-auto -mx-1 px-1">
+        <div class="min-w-[640px] md:min-w-0">
+          <slot />
+        </div>
+      </div>
+    ) : (
+      <slot />
+    )}
+
+    {hasLegend && (
+      <div class="mt-6 pt-4 border-t border-slate-dark/30 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-slate">
+        <slot name="legend" />
+      </div>
+    )}
+  </div>
+</div>

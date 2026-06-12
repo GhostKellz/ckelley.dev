@@ -1,6 +1,16 @@
 ---
-// Floating section navigation for home page
-const sections = [
+// Floating section navigation. Defaults to the home-page sections, but any
+// page can pass its own list of { id, label } anchors.
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections?: Section[];
+}
+
+const defaultSections: Section[] = [
   { id: 'hero', label: 'Top' },
   { id: 'about', label: 'About' },
   { id: 'skills', label: 'Skills' },
@@ -8,12 +18,15 @@ const sections = [
   { id: 'experience', label: 'Experience' },
   { id: 'contact', label: 'Contact' },
 ];
+
+const { sections = defaultSections } = Astro.props;
+const initialId = sections[0]?.id ?? '';
 ---
 
 <nav
   class="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-3"
-  x-data="{
-    activeSection: 'hero',
+  x-data={`{
+    activeSection: '${initialId}',
     init() {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -27,7 +40,7 @@ const sections = [
         observer.observe(section);
       });
     }
-  }"
+  }`}
 >
   {sections.map((section) => (
     <a

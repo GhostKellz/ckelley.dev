@@ -1,0 +1,78 @@
+---
+// A single diagram node: themed box with optional icon, title, and sub-label.
+type Tone = 'teal' | 'aqua' | 'violet' | 'red' | 'amber' | 'blue' | 'emerald' | 'slate';
+
+interface Props {
+  title: string;
+  sub?: string;
+  icon?: string;
+  tone?: Tone;
+  variant?: 'solid' | 'outline';
+  glow?: boolean;
+  class?: string;
+}
+
+const {
+  title,
+  sub,
+  icon,
+  tone = 'teal',
+  variant = 'outline',
+  glow = false,
+  class: className = '',
+} = Astro.props;
+
+// Full literal class strings so the Tailwind v4 scanner picks them up.
+const border: Record<Tone, string> = {
+  teal: 'border-accent/40',
+  aqua: 'border-aqua-light/40',
+  violet: 'border-violet/40',
+  red: 'border-danger/40',
+  amber: 'border-amber/40',
+  blue: 'border-blue/40',
+  emerald: 'border-emerald/40',
+  slate: 'border-slate-dark/50',
+};
+const text: Record<Tone, string> = {
+  teal: 'text-accent',
+  aqua: 'text-aqua-light',
+  violet: 'text-violet-light',
+  red: 'text-danger-light',
+  amber: 'text-amber-light',
+  blue: 'text-blue-light',
+  emerald: 'text-emerald-light',
+  slate: 'text-slate-light',
+};
+const fill: Record<Tone, string> = {
+  teal: 'bg-accent/10',
+  aqua: 'bg-aqua-light/10',
+  violet: 'bg-violet/10',
+  red: 'bg-danger/10',
+  amber: 'bg-amber/10',
+  blue: 'bg-blue/10',
+  emerald: 'bg-emerald/10',
+  slate: 'bg-navy/60',
+};
+const hex: Record<Tone, string> = {
+  teal: '#64ffda',
+  aqua: '#22d3ee',
+  violet: '#a855f7',
+  red: '#f87171',
+  amber: '#fbbf24',
+  blue: '#3b82f6',
+  emerald: '#34d399',
+  slate: '#495670',
+};
+
+const bg = variant === 'solid' ? fill[tone] : 'bg-navy/50';
+const glowStyle = glow ? `box-shadow: 0 0 18px -4px ${hex[tone]};` : '';
+---
+
+<div
+  class={`rounded-lg border ${border[tone]} ${bg} px-4 py-3 text-center transition-colors ${className}`}
+  style={glowStyle}
+>
+  {icon && <span class="block text-lg leading-none mb-1" aria-hidden="true">{icon}</span>}
+  <p class={`font-semibold text-sm ${text[tone]}`}>{title}</p>
+  {sub && <p class="text-slate text-xs mt-0.5 font-mono leading-snug">{sub}</p>}
+</div>

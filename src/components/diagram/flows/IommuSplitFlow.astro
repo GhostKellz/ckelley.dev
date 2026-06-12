@@ -1,0 +1,108 @@
+---
+// How the GPUs are split on the Arch workstation. Clean IOMMU groups let the
+// discrete RTX 5090 (plus its HDMI-audio function) be stubbed to vfio-pci at boot
+// and handed whole to the Windows guest, while the CPU's Radeon iGPU keeps the
+// host driver and drives the Arch desktop — including the Looking Glass client.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  DGPU: { x: 24, y: 78, w: 214, title: 'RTX 5090 (dGPU)', subs: ['VGA + HDMI audio fn', 'own IOMMU group'], node: '#a855f7' },
+  IGPU: { x: 24, y: 204, w: 214, title: 'Radeon iGPU', subs: ['Raphael · 9950X3D', 'own IOMMU group'] },
+  VFIO: { x: 380, y: 78, w: 180, title: 'vfio-pci', subs: ['stubbed at boot', 'device isolated'], node: '#22d3ee' },
+  AMDGPU: { x: 380, y: 204, w: 180, title: 'amdgpu', subs: ['native host driver'] },
+  GUEST: { x: 720, y: 78, w: 234, title: 'Windows guest', subs: ['q35 · OVMF', 'full RTX 5090'], node: '#a855f7', glow: true },
+  HOST: { x: 720, y: 204, w: 234, title: 'Arch host', subs: ['desktop + LG client', 'iGPU output'], node: '#64ffda', glow: true },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const flows: FlowEdge[] = [
+  { from: 'DGPU', to: 'VFIO', label: ['bind'] },
+  { from: 'VFIO', to: 'GUEST', label: ['PCIe handoff'] },
+  { from: 'IGPU', to: 'AMDGPU', label: ['load'] },
+  { from: 'AMDGPU', to: 'HOST' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#3b82f6; --edge:#3a5a8a;">
+  <svg class="flow-svg" viewBox="0 0 980 300" role="img" aria-labelledby="iommu-title iommu-desc">
+    <title id="iommu-title">GPU and IOMMU split on the Arch workstation</title>
+    <desc id="iommu-desc">
+      Clean IOMMU groups let the discrete RTX 5090 and its HDMI-audio function be stubbed to vfio-pci at
+      boot and handed whole to the Windows guest, while the CPU's Radeon integrated GPU keeps the native
+      amdgpu host driver and drives the Arch desktop, including the Looking Glass client.
+    </desc>
+    <defs>
+      <marker id="arrow-iommu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <g style="--edge:#a855f7">
+      <rect class="flow-group" x="8" y="50" width="964" height="100" rx="10" />
+    </g>
+    <text class="flow-group-label" x="24" y="68">Isolated → passed through to the VM</text>
+    <rect class="flow-group" x="8" y="176" width="964" height="100" rx="10" />
+    <text class="flow-group-label" x="24" y="194">Retained → drives the Arch host</text>
+
+    {flows.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-iommu)" />
+    ))}
+
+    {flows.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

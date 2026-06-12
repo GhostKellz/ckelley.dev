@@ -17,12 +17,26 @@
   --color-slate: #8892b0;
   --color-slate-dark: #495670;
 
+  /* Per-domain diagram accents (layered on the navy base) */
+  --color-violet: #a855f7;
+  --color-violet-light: #c084fc;
+  --color-danger: #f87171;
+  --color-danger-light: #fca5a5;
+  --color-amber: #fbbf24;
+  --color-amber-light: #fcd34d;
+  --color-blue: #3b82f6;
+  --color-blue-light: #60a5fa;
+  --color-emerald: #34d399;
+  --color-emerald-light: #6ee7b7;
+
   --font-sans: Inter, system-ui, sans-serif;
   --font-mono: JetBrains Mono, Fira Code, monospace;
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
   --animate-fade-in-up: fade-in-up 0.6s ease-out forwards;
+  --animate-dataflow: dataflow 2.2s linear infinite;
+  --animate-flow-dash: flow-dash 1s linear infinite;
 
   @keyframes float {
     0%,
@@ -50,6 +64,27 @@
     100% {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  @keyframes dataflow {
+    0% {
+      transform: translateY(-120%);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(120%);
+      opacity: 0;
+    }
+  }
+  @keyframes flow-dash {
+    to {
+      stroke-dashoffset: -24;
     }
   }
 }
@@ -194,4 +229,123 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+/* ── Diagram connectors ──────────────────────────────────────────────
+   A vertical line with a glowing dot that travels along it to imply
+   dataflow. The line/dot colors are driven by --flow (set per tone). */
+.diagram-conn {
+  position: relative;
+  width: 2px;
+  height: 2.5rem;
+  margin: 0 auto;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--flow, #64ffda) 45%, transparent),
+    transparent
+  );
+}
+
+.diagram-conn::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 9999px;
+  background: var(--flow, #64ffda);
+  box-shadow: 0 0 8px 1px var(--flow, #64ffda);
+  animation: var(--animate-dataflow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagram-conn::after {
+    animation: none;
+    top: 50%;
+    margin-top: -3px;
+  }
+}
+
+/* ── SVG flow graphs ─────────────────────────────────────────────────
+   Primitives for the hand-authored "Follow the Data" inline SVGs. Tone is
+   driven by --node / --edge CSS vars set on a wrapper or per-element. */
+.flow-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.flow-node {
+  fill: var(--color-navy-light);
+  stroke: var(--node, #64ffda);
+  stroke-width: 1.5;
+}
+
+.flow-node--glow {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--node, #64ffda) 70%, transparent));
+}
+
+.flow-title {
+  fill: var(--color-slate-light);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.flow-sub {
+  fill: var(--color-slate);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.flow-edge {
+  fill: none;
+  stroke: var(--edge, #495670);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 6;
+  animation: var(--animate-flow-dash);
+}
+
+.flow-edge--dot {
+  stroke: color-mix(in srgb, var(--edge, #495670) 70%, transparent);
+  stroke-dasharray: 2 7;
+}
+
+.flow-edge-chip {
+  fill: var(--color-navy);
+  stroke: var(--color-slate-dark);
+  stroke-width: 1;
+  opacity: 0.9;
+}
+
+.flow-edge-label {
+  fill: var(--color-slate);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+}
+
+.flow-group {
+  fill: color-mix(in srgb, var(--color-slate-dark) 8%, transparent);
+  stroke: var(--color-slate-dark);
+  stroke-width: 1;
+  stroke-dasharray: 5 5;
+}
+
+.flow-group-label {
+  fill: var(--color-slate);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-edge {
+    animation: none;
+  }
 }

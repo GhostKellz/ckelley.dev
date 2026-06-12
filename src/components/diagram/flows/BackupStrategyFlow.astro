@@ -1,0 +1,81 @@
+---
+// The 3-2-1 backup rule, visualized. One production dataset fans out to THREE
+// copies, spread across TWO media types, with at least ONE held offsite — and a
+// tested-restore step closes the loop so recovery is proven, not assumed.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  SRC: { x: 300, y: 16, w: 220, title: 'Production data', subs: ['VMs · /home · /data', 'Microsoft 365 · SaaS'] },
+  C1: { x: 30, y: 178, w: 220, title: '① on-site primary', subs: ['live storage', 'NVMe · ZFS'] },
+  C2: { x: 300, y: 178, w: 220, title: '② on-site backup', subs: ['PBS · restic · Veeam', 'separate media'] },
+  C3: { x: 570, y: 178, w: 220, title: '③ offsite copy', subs: ['Wasabi S3 region', 'geo-separated'], node: '#64ffda', glow: true },
+  VERIFY: { x: 300, y: 366, w: 220, title: 'Tested restores', subs: ['scheduled restore drills', 'recovery proven'], node: '#fbbf24' },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+
+type Pt = { x: number; y: number };
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+
+const edges = [
+  { from: 'SRC', to: 'C1' },
+  { from: 'SRC', to: 'C2' },
+  { from: 'SRC', to: 'C3' },
+  { from: 'C1', to: 'VERIFY' },
+  { from: 'C2', to: 'VERIFY' },
+  { from: 'C3', to: 'VERIFY' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+---
+
+<div class="flow-wrap" style="--node:#34d399; --edge:#3a9c81;">
+  <svg class="flow-svg" viewBox="0 0 820 470" role="img" aria-labelledby="b321-title b321-desc">
+    <title id="b321-title">The 3-2-1 backup rule</title>
+    <desc id="b321-desc">
+      One production dataset is copied three times across two media types with at least one copy held
+      offsite in Wasabi, and every copy feeds a scheduled restore-test step so recovery is proven.
+    </desc>
+    <defs>
+      <marker id="arrow-b321" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <rect class="flow-group" x="14" y="158" width="512" height="118" rx="10" />
+    <text class="flow-group-label" x="30" y="178">on-site · 2 media types</text>
+    <rect class="flow-group" x="556" y="158" width="248" height="118" rx="10" />
+    <text class="flow-group-label" x="572" y="178">1 offsite</text>
+
+    {edges.map((e) => (
+      <path class="flow-edge" d={vpath(bottom(e.from), top(e.to))} marker-end="url(#arrow-b321)" />
+    ))}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

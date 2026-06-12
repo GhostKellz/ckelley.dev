@@ -1,0 +1,110 @@
+---
+// One GPU, many containers. The Proxmox host blacklists nouveau + the nvidia
+// driver and binds the card to vfio-pci, passing it whole into a Linux VM that
+// runs the nvidia-open driver. Inside the VM, Docker + the NVIDIA Container
+// Toolkit inject that single GPU into as many containers as the workload needs —
+// PyTorch, Ollama/vLLM, ComfyUI, Jupyter/CI — all sharing one physical card.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  HOST: { x: 20, y: 146, w: 220, title: 'Proxmox host', subs: ['nouveau + nvidia blacklisted', 'GPU → vfio-pci'], node: '#3b82f6' },
+  VM: { x: 300, y: 146, w: 210, title: 'Linux VM', subs: ['nvidia-open driver', 'q35 · OVMF'], node: '#22d3ee' },
+  DOCK: { x: 570, y: 146, w: 250, title: 'Docker + Container Toolkit', subs: ['injects GPU + CUDA libs', '--gpus all'], node: '#34d399' },
+  C1: { x: 890, y: 12, w: 210, title: 'PyTorch', subs: ['train / infer'] },
+  C2: { x: 890, y: 80, w: 210, title: 'Ollama / vLLM', subs: ['LLM serving'] },
+  C3: { x: 890, y: 148, w: 210, title: 'ComfyUI · SD', subs: ['image / video gen'] },
+  C4: { x: 890, y: 216, w: 210, title: 'Jupyter · CI', subs: ['notebooks · tests'] },
+  C5: { x: 890, y: 284, w: 210, title: '+ dozens more', subs: ['all share one GPU'], node: '#64ffda', glow: true },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const flows: FlowEdge[] = [
+  { from: 'HOST', to: 'VM', label: ['passthrough'] },
+  { from: 'VM', to: 'DOCK', label: ['GPU visible'] },
+  { from: 'DOCK', to: 'C1' },
+  { from: 'DOCK', to: 'C2' },
+  { from: 'DOCK', to: 'C3' },
+  { from: 'DOCK', to: 'C4' },
+  { from: 'DOCK', to: 'C5' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#34d399; --edge:#3a9c81;">
+  <svg class="flow-svg" viewBox="0 0 1110 340" role="img" aria-labelledby="nct-title nct-desc">
+    <title id="nct-title">One GPU shared by many containers via the NVIDIA Container Toolkit</title>
+    <desc id="nct-desc">
+      The Proxmox host blacklists nouveau and the nvidia driver and binds the card to vfio-pci, passing
+      it whole into a Linux VM running the nvidia-open driver. Inside the VM, Docker and the NVIDIA
+      Container Toolkit inject that single GPU into many containers at once — PyTorch, Ollama or vLLM,
+      ComfyUI, Jupyter and CI — all sharing one physical card.
+    </desc>
+    <defs>
+      <marker id="arrow-nct" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    <rect class="flow-group" x="874" y="2" width="232" height="334" rx="10" />
+
+    {flows.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-nct)" />
+    ))}
+
+    {flows.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

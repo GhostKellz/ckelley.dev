@@ -1,0 +1,121 @@
+---
+// Proxmox / QEMU live migration — pre-copy memory migration. A running guest is
+// moved between cluster nodes with sub-second downtime: RAM is copied while the VM
+// keeps running, dirtied pages are re-copied in converging rounds, then a brief
+// stop-and-copy ships the final pages + CPU/device state and the VM resumes on the
+// target. Shared/replicated storage means the virtual disk never moves.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  VM: { x: 250, y: 16, w: 260, title: 'Running VM · pve-a', subs: ['active RAM', 'vCPU + device state'] },
+  P1: { x: 250, y: 124, w: 260, title: '1 · Memory pre-copy', subs: ['copy all RAM → pve-b', 'VM keeps running'] },
+  P2: { x: 250, y: 232, w: 260, title: '2 · Dirty-page rounds', subs: ['re-copy changed pages', 'iterate until converged'] },
+  P3: { x: 250, y: 340, w: 260, title: '3 · Stop-and-copy', subs: ['pause VM · sub-second', 'final pages + CPU state'], node: '#fbbf24' },
+  P4: { x: 250, y: 448, w: 260, title: '4 · Resume on pve-b', subs: ['VM live on target', 'source instance freed'], node: '#64ffda', glow: true },
+  STORE: { x: 560, y: 232, w: 185, title: 'Shared / ZFS storage', subs: ['disk stays put', 'ZFS send if node-local'], node: '#34d399' },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const bottom = (id: string) => ({ x: cx(N[id]), y: N[id].y + h(N[id]) });
+const top = (id: string) => ({ x: cx(N[id]), y: N[id].y });
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const vpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}`;
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const edges: FlowEdge[] = [
+  { from: 'VM', to: 'P1', label: ['migration network'] },
+  { from: 'P1', to: 'P2' },
+  { from: 'P2', to: 'P3', label: ['converged'] },
+  { from: 'P3', to: 'P4', label: ['switchover'] },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = bottom(e.from);
+  const b = top(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+
+// Self-loop on P2 to convey iterative dirty-page re-copy rounds.
+const loopY = cy(N.P2);
+const loopX = N.P2.x + N.P2.w;
+const loop = `M ${loopX} ${loopY - 10} C ${loopX + 46} ${loopY - 22}, ${loopX + 46} ${loopY + 22}, ${loopX} ${loopY + 10}`;
+---
+
+<div class="flow-wrap" style="--node:#3b82f6; --edge:#3a5a8a;">
+  <svg class="flow-svg" viewBox="0 0 760 520" role="img" aria-labelledby="mig-title mig-desc">
+    <title id="mig-title">Proxmox live migration via pre-copy memory transfer</title>
+    <desc id="mig-desc">
+      A running VM moves from cluster node pve-a to pve-b with sub-second downtime. Its memory is
+      pre-copied over the migration network while the guest keeps running, dirtied pages are re-copied
+      in converging rounds, then a brief stop-and-copy ships the final pages plus CPU and device state
+      and the VM resumes on the target. Shared or ZFS-replicated storage means the virtual disk is
+      never copied.
+    </desc>
+    <defs>
+      <marker id="arrow-mig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {edges.map((e) => (
+      <path class="flow-edge" d={vpath(bottom(e.from), top(e.to))} marker-end="url(#arrow-mig)" />
+    ))}
+
+    <path class="flow-edge" d={loop} marker-end="url(#arrow-mig)" />
+    <text class="flow-edge-label" x={loopX + 50} y={loopY + 3} text-anchor="start">↻ rounds</text>
+
+    <g style="--edge:#3a9c81">
+      <path class="flow-edge flow-edge--dot" d={hpath(left('STORE'), right('P2'))} marker-end="url(#arrow-mig)" />
+    </g>
+    <text class="flow-edge-label" x={(N.STORE.x + N.P2.x + N.P2.w) / 2} y={cy(N.STORE) - 6} text-anchor="middle">no disk copy</text>
+
+    {edges.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>

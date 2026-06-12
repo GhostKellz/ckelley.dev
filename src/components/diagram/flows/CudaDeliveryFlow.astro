@@ -1,0 +1,105 @@
+---
+// CUDA, delivered three ways. The same NVIDIA driver + CUDA toolkit reaches
+// workloads bare-metal on the Arch desktop, inside a VFIO passthrough guest
+// (the same mechanism Looking Glass uses), and inside containers via the
+// NVIDIA Container Toolkit — all converging on the same frameworks.
+interface FlowNode {
+  x: number;
+  y: number;
+  w: number;
+  title: string;
+  subs?: string[];
+  node?: string;
+  glow?: boolean;
+}
+
+const N: Record<string, FlowNode> = {
+  HOST: { x: 24, y: 44, w: 220, title: 'Arch desktop', subs: ['RTX 5090', 'bare-metal'], node: '#a855f7' },
+  HMECH: { x: 360, y: 44, w: 250, title: 'Native driver + toolkit', subs: ['nvidia + cuda', 'runs on the metal'] },
+  VM: { x: 24, y: 158, w: 220, title: 'VFIO guest VM', subs: ['passthrough GPU', 'q35 · OVMF'], node: '#22d3ee' },
+  VMECH: { x: 360, y: 158, w: 250, title: 'Guest CUDA stack', subs: ['driver inside the VM', 'same as bare-metal'] },
+  CT: { x: 24, y: 272, w: 220, title: 'Container', subs: ['Docker / Podman', 'rootless'], node: '#3b82f6' },
+  CMECH: { x: 360, y: 272, w: 250, title: 'NVIDIA Container Toolkit', subs: ['injects GPU + libs', 'no driver in image'] },
+  FW: { x: 770, y: 158, w: 220, title: 'CUDA frameworks', subs: ['PyTorch · vLLM', 'Ollama · nvcc'], node: '#64ffda', glow: true },
+};
+
+const lineH = 13;
+const h = (n: FlowNode) => 28 + (n.subs?.length ?? 0) * lineH;
+const cx = (n: FlowNode) => n.x + n.w / 2;
+const cy = (n: FlowNode) => n.y + h(n) / 2;
+const left = (id: string) => ({ x: N[id].x, y: cy(N[id]) });
+const right = (id: string) => ({ x: N[id].x + N[id].w, y: cy(N[id]) });
+
+type Pt = { x: number; y: number };
+const hpath = (a: Pt, b: Pt) =>
+  `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
+
+interface FlowEdge { from: string; to: string; label?: string[]; }
+const flows: FlowEdge[] = [
+  { from: 'HOST', to: 'HMECH', label: ['native'] },
+  { from: 'VM', to: 'VMECH', label: ['via VM'] },
+  { from: 'CT', to: 'CMECH', label: ['via container'] },
+  { from: 'HMECH', to: 'FW' },
+  { from: 'VMECH', to: 'FW' },
+  { from: 'CMECH', to: 'FW' },
+];
+
+const firstY = (n: FlowNode) => {
+  const lines = 1 + (n.subs?.length ?? 0);
+  const block = 11 + (lines - 1) * lineH;
+  return n.y + (h(n) - block) / 2 + 9;
+};
+
+const chip = (e: FlowEdge) => {
+  const a = right(e.from);
+  const b = left(e.to);
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const lines = e.label ?? [];
+  const longest = lines.reduce((m, s) => Math.max(m, s.length), 0);
+  return { mx, my, w: longest * 5.4 + 14, ht: lines.length * 12 + 8, lines };
+};
+---
+
+<div class="flow-wrap" style="--node:#3b82f6; --edge:#3a5a8a;">
+  <svg class="flow-svg" viewBox="0 0 1014 350" role="img" aria-labelledby="cuda-d-title cuda-d-desc">
+    <title id="cuda-d-title">CUDA delivered three ways</title>
+    <desc id="cuda-d-desc">
+      The same NVIDIA driver and CUDA toolkit reaches workloads three ways: bare-metal on the Arch
+      desktop, inside a VFIO passthrough guest VM (the same mechanism Looking Glass uses), and inside
+      containers via the NVIDIA Container Toolkit — all converging on the same frameworks: PyTorch,
+      vLLM, Ollama, and nvcc.
+    </desc>
+    <defs>
+      <marker id="arrow-cuda-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
+        <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+      </marker>
+    </defs>
+
+    {flows.map((e) => (
+      <path class="flow-edge" d={hpath(right(e.from), left(e.to))} marker-end="url(#arrow-cuda-d)" />
+    ))}
+
+    {flows.filter((e) => e.label).map((e) => {
+      const c = chip(e);
+      return (
+        <g>
+          <rect class="flow-edge-chip" x={c.mx - c.w / 2} y={c.my - c.ht / 2} width={c.w} height={c.ht} rx="4" />
+          {c.lines.map((s, i) => (
+            <text class="flow-edge-label" x={c.mx} y={c.my - c.ht / 2 + 13 + i * 12} text-anchor="middle">{s}</text>
+          ))}
+        </g>
+      );
+    })}
+
+    {Object.values(N).map((n) => (
+      <g style={n.node ? `--node:${n.node}` : undefined}>
+        <rect class={`flow-node${n.glow ? ' flow-node--glow' : ''}`} x={n.x} y={n.y} width={n.w} height={h(n)} rx="8" />
+        <text class="flow-title" x={cx(n)} y={firstY(n)} text-anchor="middle">{n.title}</text>
+        {n.subs?.map((s, i) => (
+          <text class="flow-sub" x={cx(n)} y={firstY(n) + 14 + i * lineH} text-anchor="middle">{s}</text>
+        ))}
+      </g>
+    ))}
+  </svg>
+</div>
