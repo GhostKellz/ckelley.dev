@@ -8,16 +8,11 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.4.6"
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.2"
   },
   "devDependencies": {
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "postcss@<8.5.10": ">=8.5.10"
-    }
   }
 }
