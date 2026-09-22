@@ -30,3 +30,4 @@ Thumbs.db
 # misc
 .cache/
 .turbo/
+tasks/
