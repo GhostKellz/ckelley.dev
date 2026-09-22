@@ -65,9 +65,10 @@ const chip = (e: FlowEdge) => {
   <svg class="flow-svg" viewBox="0 0 904 372" role="img" aria-labelledby="cuda-c-title cuda-c-desc">
     <title id="cuda-c-title">CUDA across the Proxmox cluster</title>
     <desc id="cuda-c-desc">
-      A CUDA job is submitted to a scheduler that routes it to whichever cluster node has the right card
-      free — an RTX 4090, RTX 3070, a pair of RTX 2060s, two DGX Spark units, or the RTX 5090 desktop
-      for burst — time-slicing or MIG-partitioning a card when several jobs want the same GPU. AMD and
+      A CUDA job is submitted to a scheduler that routes it to whichever cluster node has the right
+      card free, whether an RTX 4090, RTX 3070, a pair of RTX 2060s, two DGX Spark units, or the RTX
+      5090 desktop for burst. When several jobs want the same GPU, the scheduler time-slices or
+      MIG-partitions the card. AMD and
       iGPU-only nodes sit outside the CUDA pool and take non-CUDA work.
     </desc>
     <defs>
@@ -104,6 +105,6 @@ const chip = (e: FlowEdge) => {
       </g>
     ))}
 
-    <text class="flow-sub" x="452" y="364" text-anchor="middle">AMD (RX 570) and iGPU-only nodes sit outside the CUDA pool — they take non-CUDA work</text>
+    <text class="flow-sub" x="452" y="364" text-anchor="middle">AMD (RX 570) and iGPU-only nodes sit outside the CUDA pool and take non-CUDA work</text>
   </svg>
 </div>

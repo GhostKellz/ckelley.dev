@@ -18,7 +18,7 @@ Kelley. The priorities, in order, are:
 
 ### Static site generation with Astro
 
-**Decision:** Use [Astro](https://astro.build) 6.4.6 with static output.
+**Decision:** Use [Astro](https://astro.build) 7 with static output.
 
 **Why:** Astro renders everything to plain HTML/CSS at build time and ships almost no
 JavaScript. For a content-driven portfolio this is ideal — pages load instantly, there is no
@@ -105,7 +105,7 @@ long-lived caching for hashed assets. See [deployment.md](deployment.md) and
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Inter, system-ui, sans-serif','primaryColor':'#112240','primaryBorderColor':'#64ffda','primaryTextColor':'#e6f1ff','lineColor':'#64ffda','fontSize':'14px'}}}%%
 flowchart TB
     SRC["Author .astro<br/>pages · components · SVG flows"]:::dev
-    BUILD["astro build · Vite 7"]:::dev
+    BUILD["astro build · Vite 8"]:::dev
     DIST["dist/<br/>static HTML/CSS/JS"]:::dev
     NGX["PVE1 NGINX VM<br/>ckelley.dev origin"]:::host
     CF["Cloudflare edge · Pro<br/>WAF · CDN · TLS"]:::external

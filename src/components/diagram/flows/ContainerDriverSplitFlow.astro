@@ -62,7 +62,7 @@ const chip = (e: FlowEdge) => {
     <desc id="cds-desc">
       The physical GPU is bound to vfio-pci on the Proxmox host, which carries no GPU driver because
       nouveau and the nvidia driver are blacklisted. It passes through to a Linux VM that holds the one
-      and only GPU driver, nvidia-open. Containers ship with no driver at all — the NVIDIA Container
+      and only GPU driver, nvidia-open. Containers ship with no driver at all. The NVIDIA Container
       Toolkit injects the device and CUDA libraries at runtime, keeping the images portable.
     </desc>
     <defs>
@@ -97,6 +97,6 @@ const chip = (e: FlowEdge) => {
       </g>
     ))}
 
-    <text class="flow-sub" x="560" y="172" text-anchor="middle">The GPU driver lives in exactly one place — the VM. The host stays out of the way; container images stay portable.</text>
+    <text class="flow-sub" x="560" y="172" text-anchor="middle">The GPU driver lives in exactly one place, the VM. The host stays out of the way; container images stay portable.</text>
   </svg>
 </div>

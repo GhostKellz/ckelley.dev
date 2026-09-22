@@ -25,10 +25,10 @@ production behind Cloudflare. For a high-level summary and quick start, see the
 |---|---|
 | **Owner** | Christopher Kelley / CK Technology LLC |
 | **Type** | Personal portfolio + technical resume |
-| **Framework** | Astro 6.4.6 (static output) |
+| **Framework** | Astro 7 (static output) |
 | **Styling** | Tailwind CSS v4 (CSS-first `@theme`, via `@tailwindcss/vite`) |
 | **Language** | TypeScript (`astro/tsconfigs/strict`) |
-| **Build tool** | Vite 7 |
+| **Build tool** | Vite 8 |
 | **Interactivity** | Alpine.js (CDN) — mobile menu, scroll-spy nav, hero typing/terminal |
 | **Diagrams** | 22 hand-authored inline-SVG flow components (CSS animation, reduced-motion aware) |
 | **Package manager** | pnpm |

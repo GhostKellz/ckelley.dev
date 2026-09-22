@@ -70,8 +70,8 @@ const chip = (e: FlowEdge) => {
     <desc id="nct-desc">
       The Proxmox host blacklists nouveau and the nvidia driver and binds the card to vfio-pci, passing
       it whole into a Linux VM running the nvidia-open driver. Inside the VM, Docker and the NVIDIA
-      Container Toolkit inject that single GPU into many containers at once — PyTorch, Ollama or vLLM,
-      ComfyUI, Jupyter and CI — all sharing one physical card.
+      Container Toolkit inject that single GPU into many containers at once, so PyTorch, Ollama or
+      vLLM, ComfyUI, Jupyter and CI all share one physical card.
     </desc>
     <defs>
       <marker id="arrow-nct" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">

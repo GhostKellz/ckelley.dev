@@ -71,7 +71,7 @@ const chip = (e: FlowEdge) => {
     <desc id="raid-desc">
       A primary storage host runs a RAIDZ2 pool with double parity that survives two simultaneous drive
       losses; the rest of the cluster runs ZFS mirrors (RAID1) that survive one drive per vdev with fast
-      resilver; and the Synology NAS runs SHR — btrfs under the hood — for flexible mixed-drive
+      resilver; and the Synology NAS runs SHR, with btrfs under the hood, for flexible mixed-drive
       redundancy with block checksums and bit-rot self-healing. Everything is checksummed and scrubbed
       to catch silent corruption.
     </desc>
@@ -107,6 +107,6 @@ const chip = (e: FlowEdge) => {
       </g>
     ))}
 
-    <text class="flow-sub" x="512" y="360" text-anchor="middle">ZFS &amp; btrfs checksum every block — scheduled scrubs catch and repair silent corruption before it spreads</text>
+    <text class="flow-sub" x="512" y="360" text-anchor="middle">ZFS &amp; btrfs checksum every block, and scheduled scrubs catch and repair silent corruption before it spreads</text>
   </svg>
 </div>

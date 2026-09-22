@@ -15,8 +15,8 @@ interface FlowNode {
 const N: Record<string, FlowNode> = {
   SESS: { x: 250, y: 16, w: 200, title: 'Sessions (LAN)', subs: ['new connections'] },
   ALG: { x: 225, y: 150, w: 250, title: 'Load-balance algo', subs: ['volume ratio · sessions', 'source-dest-IP · spillover'] },
-  M1: { x: 140, y: 332, w: 210, title: 'WAN1 — Fiber', subs: ['≈70% by bandwidth'], glow: true },
-  M2: { x: 400, y: 332, w: 210, title: 'WAN2 — Cable', subs: ['≈30% by bandwidth'] },
+  M1: { x: 140, y: 332, w: 210, title: 'WAN1 · Fiber', subs: ['≈70% by bandwidth'], glow: true },
+  M2: { x: 400, y: 332, w: 210, title: 'WAN2 · Cable', subs: ['≈30% by bandwidth'] },
   NET: { x: 250, y: 440, w: 200, title: 'Internet', node: '#64ffda', glow: true },
 };
 
@@ -60,9 +60,9 @@ const chip = (e: FlowEdge) => {
   <svg class="flow-svg" viewBox="0 0 700 480" role="img" aria-labelledby="sdwanlb-title sdwanlb-desc">
     <title id="sdwanlb-title">SD-WAN link load balancing across both WAN members</title>
     <desc id="sdwanlb-desc">
-      New LAN sessions are spread by the SD-WAN load-balance algorithm across both active members —
-      roughly 70 percent on the WAN1 fiber link and 30 percent on the WAN2 cable link by bandwidth —
-      aggregating egress to the internet rather than failing over.
+      New LAN sessions are spread by the SD-WAN load-balance algorithm across both active members,
+      with roughly 70 percent on the WAN1 fiber link and 30 percent on the WAN2 cable link by
+      bandwidth. This aggregates egress to the internet rather than failing over.
     </desc>
     <defs>
       <marker id="arrow-sdwanlb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">

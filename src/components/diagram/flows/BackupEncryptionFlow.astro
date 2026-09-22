@@ -94,7 +94,7 @@ const chip = (e: FlowEdge) => {
       );
     })}
 
-    <text class="flow-sub" x="490" y="296" text-anchor="middle">Wasabi only ever stores ciphertext — no provider-held keys, no plaintext</text>
+    <text class="flow-sub" x="490" y="296" text-anchor="middle">Wasabi only ever stores ciphertext, with no provider-held keys and no plaintext</text>
 
     {Object.values(N).map((n) => (
       <g style={n.node ? `--node:${n.node}` : undefined}>

@@ -15,7 +15,7 @@ interface FlowNode {
 
 const N: Record<string, FlowNode> = {
   CLIENT: { x: 20, y: 96, w: 200, title: 'Client / Browser', subs: ['trusts CKEL_ROOT_CA'] },
-  FG: { x: 360, y: 96, w: 260, title: 'FortiGate — Full SSL', subs: ['decrypt → inspect → re-encrypt', 'two independent TLS sessions'], glow: true },
+  FG: { x: 360, y: 96, w: 260, title: 'FortiGate · Full SSL', subs: ['decrypt → inspect → re-encrypt', 'two independent TLS sessions'], glow: true },
   SERVER: { x: 760, y: 96, w: 200, title: 'Origin Server', subs: ['real cert validated'] },
   INSPECT: { x: 355, y: 210, w: 270, title: 'Plaintext inspection', subs: ['IPS · AV · AppCtrl · WebFilter · DLP'], node: '#fbbf24' },
 };

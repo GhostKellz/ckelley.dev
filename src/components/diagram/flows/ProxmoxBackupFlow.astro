@@ -60,9 +60,9 @@ const chip = (e: FlowEdge) => {
   <svg class="flow-svg" viewBox="0 0 840 480" role="img" aria-labelledby="pve-title pve-desc">
     <title id="pve-title">Proxmox cluster backup and offsite chain</title>
     <desc id="pve-desc">
-      Proxmox guests on ZFS feed two on-site copies — node-to-node ZFS replication for warm standby
-      and Proxmox Backup Server for incremental, deduplicated, client-encrypted snapshots — while both
-      the local PBS and the offsite cloud PVE node sync to Wasabi for the geo-separated copy.
+      Proxmox guests on ZFS feed two on-site copies. Node-to-node ZFS replication provides warm
+      standby, and Proxmox Backup Server keeps incremental, deduplicated, client-encrypted snapshots.
+      Both the local PBS and the offsite cloud PVE node sync to Wasabi for the geo-separated copy.
     </desc>
     <defs>
       <marker id="arrow-pve" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">

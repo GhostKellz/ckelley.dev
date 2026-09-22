@@ -6,9 +6,9 @@
 
 <p align="center">
   <a href="https://ckelley.dev"><img src="https://img.shields.io/badge/Live-ckelley.dev-64ffda?style=for-the-badge" alt="Live Site"></a>
-  <img src="https://img.shields.io/badge/Astro-6.4.6-BC52EE?style=for-the-badge&logo=astro&logoColor=white" alt="Astro">
-  <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4.3.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Astro-7-BC52EE?style=for-the-badge&logo=astro&logoColor=white" alt="Astro">
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/pnpm-10-F69220?style=for-the-badge&logo=pnpm&logoColor=white" alt="pnpm">
   <img src="https://img.shields.io/badge/NGINX-009639?style=for-the-badge&logo=nginx&logoColor=white" alt="NGINX">
   <img src="https://img.shields.io/badge/Static-Site-12121a?style=for-the-badge" alt="Static Site">
@@ -56,19 +56,19 @@ diagrams (no Mermaid, no D3, zero JS libraries) themed to the site's navy/teal s
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | Astro 6 (static output) |
+| **Framework** | Astro 7 (static output) |
 | **Styling** | Tailwind CSS 4 via the `@tailwindcss/vite` plugin |
 | **Language** | TypeScript |
 | **Diagrams** | Hand-authored inline SVG (no charting libraries) |
 | **Package Manager** | pnpm |
-| **Build Tool** | Vite 7 |
+| **Build Tool** | Vite 8 |
 | **Output** | Static HTML/CSS |
 | **Hosting** | NGINX serving static files behind HTTPS |
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+ (developed on Node 24)
+- Node.js 22.12+ (developed on Node 24)
 - pnpm 10+
 
 ### Development

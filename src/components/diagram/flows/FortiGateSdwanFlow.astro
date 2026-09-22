@@ -16,8 +16,8 @@ const N: Record<string, FlowNode> = {
   LAN: { x: 290, y: 16, w: 240, title: 'LAN + VLANs', subs: ['10.0.0.0/24 · VLAN 10–80'] },
   RULES: { x: 270, y: 150, w: 260, title: 'SD-WAN Rules', subs: ['SLA steering · app-aware', 'source / dest rules'] },
   SLA: { x: 600, y: 150, w: 190, title: 'Performance SLA', subs: ['probes: latency', 'jitter / loss'], node: '#fbbf24' },
-  M1: { x: 160, y: 332, w: 240, title: 'WAN1 — Fiber', subs: ['2.5 GbE · primary', 'static block'], glow: true },
-  M2: { x: 440, y: 332, w: 240, title: 'WAN2 — Cable', subs: ['~1 GbE · backup', 'redefined LAN port'] },
+  M1: { x: 160, y: 332, w: 240, title: 'WAN1 · Fiber', subs: ['2.5 GbE · primary', 'static block'], glow: true },
+  M2: { x: 440, y: 332, w: 240, title: 'WAN2 · Cable', subs: ['~1 GbE · backup', 'redefined LAN port'] },
   NET: { x: 300, y: 470, w: 200, title: 'Internet', node: '#64ffda', glow: true },
 };
 
@@ -56,8 +56,8 @@ const firstY = (n: FlowNode) => {
     <title id="sdwan-title">FortiGate SD-WAN failover and SLA steering</title>
     <desc id="sdwan-desc">
       LAN and VLAN traffic hits the SD-WAN rules, which are driven by Performance SLA health
-      probes and steer egress between two members — WAN1 fiber (2.5 GbE primary) and WAN2 cable
-      (~1 GbE backup, a redefined LAN port) in the wan-failover-link zone — out to the internet.
+      probes and steer egress out to the internet through the two members of the wan-failover-link
+      zone, WAN1 fiber (2.5 GbE primary) and WAN2 cable (~1 GbE backup, a redefined LAN port).
     </desc>
     <defs>
       <marker id="arrow-sdwan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">

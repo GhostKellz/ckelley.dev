@@ -73,7 +73,7 @@ const inputPath = `M ${ib.x} ${ib.y} C ${ib.x} ${inputY}, ${gb.x} ${inputY}, ${g
       A Windows guest gets a real GPU via VFIO passthrough, so 3D apps and CUDA run at near bare-metal
       speed. The guest renders to its passthrough GPU; the Looking Glass host app copies each frame into
       an IVSHMEM shared-memory region, and the Looking Glass client on the host reads it straight from
-      RAM — a lossless desktop with no video encode and no network hop. Keyboard and mouse input is fed
+      RAM, delivering a lossless desktop with no video encode and no network hop. Keyboard and mouse input is fed
       back into the guest.
     </desc>
     <defs>

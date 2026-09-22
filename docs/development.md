@@ -4,7 +4,7 @@ How to set up the project locally and work on it.
 
 ## Prerequisites
 
-- **Node.js** 18 or newer (developed on Node 24)
+- **Node.js** 22.12 or newer (developed on Node 24)
 - **pnpm** 10 or newer — install with `npm install -g pnpm`
 
 ## Setup
