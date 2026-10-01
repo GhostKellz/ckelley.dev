@@ -217,7 +217,7 @@ const domains = [
 
         <!-- SD-WAN -->
         <div class="reveal">
-          <DiagramFrame tone="aqua" scroll={true} eyebrow="SD-WAN" title="Failover &amp; SLA Steering">
+          <DiagramFrame tone="aqua" scroll={true} eyebrow="SD-WAN" title={'Failover & SLA Steering'}>
             <FortiGateSdwanFlow />
             <Fragment slot="legend">
               <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #fbbf24;"></span>Dotted = Performance SLA feeding the steering decision</span>
@@ -909,7 +909,7 @@ const domains = [
             <DiagramLane label="Central · Local API (single source of truth)" tone="red" cols={1} connector={true}>
               <DiagramNode tone="red" variant="solid" glow={true} icon="🧠"
                 title="CrowdSec LAPI"
-                sub="10.0.0.23:8080 · Postgres · profiles → decisions · + CAPI &amp; console lists" />
+                sub={'10.0.0.23:8080 · Postgres · profiles → decisions · + CAPI & console lists'} />
             </DiagramLane>
             <DiagramLane label="Enforcement · bouncers" tone="red" cols={3}>
               <DiagramNode tone="amber" icon="🛡️" title="FortiGate" sub="external threat feed" />
@@ -995,7 +995,7 @@ const domains = [
               <DiagramNode tone="red" variant="solid" icon="🖧" title="ScreenConnect"
                 sub="ConnectWise Control · PVE1 VM · RMM / remote support" />
               <DiagramNode tone="violet" icon="📓" title="Hudu"
-                sub="self-hosted docs &amp; runbooks · Tailscale-only" />
+                sub={'self-hosted docs & runbooks · Tailscale-only'} />
             </DiagramLane>
             <DiagramLane label="Split exposure" tone="red" cols={2} connector={true}>
               <DiagramNode tone="amber" variant="solid" icon="📡" title="Relay (screlay) · public"
@@ -1094,7 +1094,7 @@ const domains = [
               <DiagramNode tone="emerald" icon="📦" title="cAdvisor" sub="per-container" />
               <DiagramNode tone="emerald" icon="🧮" title="Proxmox + edge" sub="targets/*.yml · hot reload" />
             </DiagramLane>
-            <DiagramLane label="Scrape &amp; store" tone="emerald" cols={1} connector={true}>
+            <DiagramLane label={'Scrape & store'} tone="emerald" cols={1} connector={true}>
               <DiagramNode tone="emerald" variant="solid" icon="⏱️" title="Prometheus :9090" sub="15s scrape · 30d / 40GB" />
             </DiagramLane>
             <DiagramLane label="Outputs" tone="emerald" cols={2}>
@@ -1106,7 +1106,7 @@ const domains = [
 
         <!-- Security overlays -->
         <div class="mt-10 reveal">
-          <DiagramFrame tone="emerald" eyebrow="Overlays" title="Security · CrowdSec &amp; Wazuh">
+          <DiagramFrame tone="emerald" eyebrow="Overlays" title={'Security · CrowdSec & Wazuh'}>
             <DiagramLane label="Sources (read-only, over Tailscale)" tone="emerald" cols={2} connector={true}>
               <DiagramNode tone="red" icon="🧠" title="CrowdSec LAPI :6060" sub="cs_* metrics → Prometheus" />
               <DiagramNode tone="red" icon="🛰️" title="Wazuh indexer :9200" sub="OpenSearch · wazuh-alerts-4.x" />
@@ -1174,7 +1174,7 @@ const domains = [
 
         <!-- Security overlays flow -->
         <div class="mt-10 reveal">
-          <DiagramFrame tone="emerald" scroll={true} eyebrow="Flow 3" title="Security Overlays · CrowdSec &amp; Wazuh">
+          <DiagramFrame tone="emerald" scroll={true} eyebrow="Flow 3" title={'Security Overlays · CrowdSec & Wazuh'}>
             <SecurityOverlayFlow />
             <Fragment slot="legend">
               <span>Read-only sources on the left feed Prometheus and Grafana on the right.</span>
@@ -1184,7 +1184,7 @@ const domains = [
 
         <!-- Deployment topology flow -->
         <div class="mt-10 reveal">
-          <DiagramFrame tone="teal" scroll={true} eyebrow="Flow 4" title="Network &amp; Deployment Topology">
+          <DiagramFrame tone="teal" scroll={true} eyebrow="Flow 4" title={'Network & Deployment Topology'}>
             <DeploymentTopologyFlow />
             <Fragment slot="legend">
               <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #64ffda;"></span>Dotted = overlay / copy (Tailnet · conf.d)</span>

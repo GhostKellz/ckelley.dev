@@ -61,10 +61,34 @@ const categories: Category[] = [
     icon: '🔑',
     description: 'Vaulting, secure sharing, and SSO-backed credential management.',
     technologies: [
-      { name: 'Bitwarden Enterprise', description: 'Business vault with Entra ID SSO; mirrors a collection of the Hudu documentation secrets for work accounts' },
-      { name: 'Bitwarden (Families)', description: 'Personal vaults and secure sharing for friends-and-family password management' },
+      { name: 'Bitwarden', description: 'Password vaults, secure sharing, and credential management for business and personal use' },
       { name: 'Vaultwarden', description: 'Self-hosted Bitwarden-compatible server for homelab credentials, testing, and lab service hosting' },
       { name: 'Entra ID SSO', description: 'SAML/OIDC single sign-on fronting the enterprise vault with conditional access' },
+      { name: 'Passkeys', description: 'Passwordless, phishing-resistant sign-in using WebAuthn credentials' },
+      { name: 'FIDO2 Security Keys', description: 'Hardware-backed authentication for phishing-resistant MFA and passwordless sign-in' },
+    ],
+  },
+  {
+    title: 'Crypto Hardware Wallets',
+    icon: '🔐',
+    description: 'Hardware wallets, on-device transaction review, and offline signing.',
+    technologies: [
+      { name: 'Keystone 3 Pro', description: 'Air-gapped wallet with QR-based transaction signing' },
+      { name: 'Ledger Stax', description: 'Touchscreen hardware wallet with on-device transaction review and signing' },
+      { name: 'Trezor', description: 'Hardware wallets and account management through Trezor Suite' },
+      { name: 'Tangem', description: 'NFC hardware wallets used with the Tangem mobile app' },
+      { name: 'NGRAVE', description: 'ZERO air-gapped hardware wallet with QR-based transaction signing' },
+    ],
+  },
+  {
+    title: 'Software Wallets',
+    icon: '👛',
+    description: 'Wallet applications for account management, transactions, and dApp connections.',
+    technologies: [
+      { name: 'Xaman', description: 'XRP Ledger wallet for account management and transaction signing' },
+      { name: 'HashPack', description: 'Hedera wallet for HBAR, tokens, and dApp connections' },
+      { name: 'xBull', description: 'Stellar wallet for account management and transaction signing' },
+      { name: 'MetaMask', description: 'Wallet for Ethereum and EVM networks, tokens, and dApp connections' },
     ],
   },
   {

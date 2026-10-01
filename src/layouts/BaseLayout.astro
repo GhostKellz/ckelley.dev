@@ -10,6 +10,7 @@ const {
 } = Astro.props;
 
 const siteUrl = "https://ckelley.dev";
+const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
 ---
 
 <!DOCTYPE html>
@@ -23,7 +24,7 @@ const siteUrl = "https://ckelley.dev";
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={siteUrl} />
+    <meta property="og:url" content={pageUrl} />
     <meta property="og:image" content={`${siteUrl}/og-image.png`} />
 
     <!-- Twitter -->

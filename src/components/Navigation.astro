@@ -32,7 +32,7 @@ const navLinks = [
           <a
             href={link.href}
             class={`text-slate hover:text-accent transition-colors text-sm ${
-              pathname === link.href || (link.href !== '/#contact' && pathname.startsWith(link.href))
+              pathname === link.href || (link.href !== '/' && link.href !== '/#contact' && pathname.startsWith(`${link.href}/`))
                 ? 'text-accent'
                 : ''
             }`}

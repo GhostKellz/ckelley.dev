@@ -36,7 +36,7 @@ const socialLinks = [
     </div>
 
     <!-- Social Cards -->
-    <div class="reveal grid md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16" style="transition-delay: 0.1s;">
+    <div class="reveal grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-16" style="transition-delay: 0.1s;">
       {socialLinks.map(link => (
         <a
           href={link.url}
@@ -49,6 +49,22 @@ const socialLinks = [
           <p class="text-accent text-sm font-mono">{link.handle}</p>
         </a>
       ))}
+      <div class="card flex flex-col items-center text-center py-8">
+        <a href="https://app.ens.domains/ckelley.eth" target="_blank" rel="noopener noreferrer" class="group flex flex-col items-center rounded-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4" aria-label="ckelley.eth ENS profile (opens in a new tab)">
+          <svg class="w-8 h-8 text-slate group-hover:text-accent transition-colors mb-4" viewBox="0 0 24 32" fill="currentColor" aria-hidden="true">
+            <path d="M12 0 2 16.3 12 22 22 16.3Z" opacity="0.75" />
+            <path d="M12 0v22l10-5.7Z" />
+            <path d="m2 18.3 10 13.7 10-13.7L12 24Z" opacity="0.75" />
+            <path d="M12 24v8l10-13.7Z" />
+          </svg>
+          <h3 class="text-slate-light font-semibold mb-1">ENS</h3>
+          <span class="text-accent text-sm font-mono group-hover:underline">ckelley.eth</span>
+        </a>
+        <p class="text-slate text-xs mt-3">
+          CK Technology:
+          <a href="https://app.ens.domains/cktech.eth" target="_blank" rel="noopener noreferrer" class="text-accent font-mono hover:underline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4" aria-label="CK Technology cktech.eth ENS profile (opens in a new tab)">cktech.eth</a>
+        </p>
+      </div>
     </div>
 
     <!-- Email CTA -->
