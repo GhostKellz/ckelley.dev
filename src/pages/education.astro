@@ -67,7 +67,15 @@ const academicProjects = [
 
     <section id="degree" class="section bg-navy-light/30">
       <div class="container-narrow">
-        <SectionHeading eyebrow="Southern New Hampshire University / 2019–2023" title="Bachelor of Science." accent="Software Development." description="Software engineering, databases, mobile development, and infrastructure, bringing programming fundamentals together with practical IT operations." />
+        <div class="flex flex-col sm:flex-row items-start gap-5">
+          <div class="credential-icon degree-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m2 9 10-5 10 5-10 5L2 9Z" />
+              <path d="M6 11v6c3 3 9 3 12 0v-6M22 9v7" />
+            </svg>
+          </div>
+          <SectionHeading eyebrow="Southern New Hampshire University / 2019–2023" title="Bachelor of Science." accent="Software Development." description="Software engineering, databases, mobile development, and infrastructure, bringing programming fundamentals together with practical IT operations." />
+        </div>
         <div class="flex flex-wrap gap-2">
           {['Software Engineering', 'Database Design', 'Java / C++ / Python', 'Network Security', 'Agile / SDLC', 'Enterprise Architecture'].map(skill => <span class="portfolio-tag">{skill}</span>)}
         </div>
@@ -80,6 +88,11 @@ const academicProjects = [
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {certifications.map(cert => (
             <article class="card border-t-2 border-t-accent-muted">
+              <div class="credential-icon mb-5" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
               <h3>{cert.name}</h3>
               <p class="text-accent font-mono text-sm mt-3">{cert.code}</p>
               <p class="portfolio-copy mt-2">Earned {cert.year}</p>
@@ -137,3 +150,20 @@ const academicProjects = [
   </main>
   <footer class="py-8 text-center"><a href="/" class="link text-sm font-mono">← Back to Home</a></footer>
 </BaseLayout>
+
+<style>
+  .credential-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 1px solid rgb(100 255 218 / 30%);
+    border-radius: 1rem;
+    background: rgb(100 255 218 / 6%);
+    color: #64ffda;
+  }
+  .credential-icon svg { width: 1.75rem; height: 1.75rem; }
+  .degree-icon { width: 4rem; height: 4rem; }
+  .degree-icon svg { width: 2.25rem; height: 2.25rem; }
+</style>
