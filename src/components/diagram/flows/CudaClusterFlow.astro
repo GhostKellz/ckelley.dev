@@ -1,8 +1,5 @@
 ---
-// CUDA across the Proxmox cluster. A GPU job is submitted to a scheduler that
-// routes it to whichever node has the right card free, time-slicing or MIG-
-// partitioning a card when several jobs want the same GPU. AMD (RX 570) and
-// iGPU-only nodes sit out of the CUDA pool and take non-CUDA work.
+// Workload placement across dedicated GPU endpoints and the Spark pair.
 interface FlowNode {
   x: number;
   y: number;
@@ -15,12 +12,12 @@ interface FlowNode {
 
 const N: Record<string, FlowNode> = {
   JOB: { x: 20, y: 146, w: 200, title: 'CUDA job', subs: ['train · infer', 'batch compute'] },
-  SCHED: { x: 300, y: 146, w: 230, title: 'GPU scheduler', subs: ['routes to free node', 'MIG · time-slicing'], node: '#fbbf24' },
+  SCHED: { x: 300, y: 146, w: 230, title: 'Workload placement', subs: ['model size · GPU memory', 'available capacity'], node: '#fbbf24' },
   G1: { x: 624, y: 24, w: 250, title: 'RTX 4090 node', subs: ['24 GB · heavy compute'], node: '#a855f7', glow: true },
   G2: { x: 624, y: 88, w: 250, title: 'RTX 3070 node', subs: ['8 GB · mid inference'], node: '#a855f7' },
   G3: { x: 624, y: 152, w: 250, title: '2× RTX 2060 nodes', subs: ['CI · light inference'], node: '#a855f7' },
-  G4: { x: 624, y: 216, w: 250, title: '2× DGX Spark', subs: ['batch · 10 GbE'], node: '#22d3ee', glow: true },
-  G5: { x: 624, y: 280, w: 250, title: 'RTX 5090 (desktop)', subs: ['daily driver · burst'], node: '#a855f7', glow: true },
+  G4: { x: 624, y: 216, w: 250, title: '2× DGX Spark', subs: ['200 Gb/s · distributed serving'], node: '#22d3ee', glow: true },
+  G5: { x: 624, y: 280, w: 250, title: 'RTX 5090 (desktop)', subs: ['daily inference · image/video'], node: '#a855f7', glow: true },
 };
 
 const lineH = 13;
@@ -65,11 +62,10 @@ const chip = (e: FlowEdge) => {
   <svg class="flow-svg" viewBox="0 0 904 372" role="img" aria-labelledby="cuda-c-title cuda-c-desc">
     <title id="cuda-c-title">CUDA across the Proxmox cluster</title>
     <desc id="cuda-c-desc">
-      A CUDA job is submitted to a scheduler that routes it to whichever cluster node has the right
-      card free, whether an RTX 4090, RTX 3070, a pair of RTX 2060s, two DGX Spark units, or the RTX
-      5090 desktop for burst. When several jobs want the same GPU, the scheduler time-slices or
-      MIG-partitions the card. AMD and
-      iGPU-only nodes sit outside the CUDA pool and take non-CUDA work.
+      Workloads are placed according to model requirements and available GPU capacity.
+      The RTX 5090, RTX 4090, and two-node DGX Spark cluster are the primary daily systems.
+      RTX 3070 and RTX 2060 resources support smaller workloads and CI. AMD and integrated
+      GPUs handle work outside the CUDA stack.
     </desc>
     <defs>
       <marker id="arrow-cuda-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">

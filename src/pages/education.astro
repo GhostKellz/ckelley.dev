@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Navigation from '@components/Navigation.astro';
+import PageHero from '@components/PageHero.astro';
+import SectionHeading from '@components/SectionHeading.astro';
 import '@styles/global.css';
 
 const certifications = [
@@ -49,250 +51,89 @@ const courses = [
   },
 ];
 
-const capstoneHighlights = [
-  {
-    title: 'SD-WAN Architecture',
-    description: 'Designed multi-site SD-WAN topology with automatic failover between fiber and cable connections.',
-    icon: '🌐',
-  },
-  {
-    title: 'Fortinet Security',
-    description: 'Implemented FortiGate firewall rules, VPN tunnels, and threat protection policies.',
-    icon: '🛡️',
-  },
-  {
-    title: 'Zero-Trust VPN',
-    description: 'Deployed Tailscale mesh VPN for secure, identity-based access across all endpoints.',
-    icon: '🔐',
-  },
-  {
-    title: 'Azure Integration',
-    description: 'Integrated Microsoft 365 and Azure AD for identity management and cloud services.',
-    icon: '☁️',
-  },
+const academicProjects = [
+  { name: 'Event Tracking App', course: 'CS 360 / Mobile Development', description: 'An Android application written in Java with SQLite storage, user authentication, an event grid, and SMS reminders.', lesson: 'I reduced an ambitious calendar interface to a focused GridView that I could finish and polish. Scoping the work was as important as implementing it.', href: 'https://github.com/GhostKellz/EventTrackingApp' },
+  { name: 'Quantigration RMA Database', course: 'DAD 220 / Database Administration', description: 'A relational schema connecting customers, orders, and returns, supported by an ERD and MySQL queries for return analysis.', lesson: 'Joins and aggregations turned transaction records into useful summaries, connecting database design to the questions a stakeholder needs answered.' },
+  { name: 'Travel Planning Application', course: 'CS 250 / Software Development Lifecycle', description: 'A team project using Scrum, user stories, test cases, a JIRA backlog, and GitHub version control.', lesson: 'A change in product direction required revised stories and tests. The exercise made the relationship between requirements, scope, and validation concrete.' },
 ];
 ---
 
-<BaseLayout title="Education | Christopher Kelley" description="Academic background, certifications, and capstone projects from SNHU Software Development program.">
+<BaseLayout title="Education | Christopher Kelley" description="Software development education at SNHU, industry certifications, and practical projects in application development, networking, and infrastructure.">
   <Navigation />
+  <main class="pt-24 portfolio-page">
+    <PageHero eyebrow="Education" title="A technical foundation." accent="Applied through building."
+      description="A B.S. in Software Development from Southern New Hampshire University, complemented by certifications in networking, security, and Linux. The practical work connects directly to the systems and software I build today."
+      links={[{ id: 'degree', label: 'Degree' }, { id: 'certifications', label: 'Certifications' }, { id: 'capstone', label: 'Capstone' }, { id: 'academic-projects', label: 'Projects' }, { id: 'coursework', label: 'Coursework' }]} />
 
-  <main class="pt-24">
-    <!-- Hero -->
-    <section class="section pb-12">
-      <div class="container-narrow text-center">
-        <p class="heading-accent">Background</p>
-        <h1 class="text-4xl md:text-5xl font-bold text-slate-light mb-4">Education</h1>
-        <p class="text-slate max-w-2xl mx-auto">
-          B.S. in Software Development from Southern New Hampshire University,
-          complemented by industry certifications in security, networking, and Linux.
-        </p>
-      </div>
-    </section>
-
-    <!-- Degree -->
-    <section class="section py-16 bg-navy-light/30">
+    <section id="degree" class="section bg-navy-light/30">
       <div class="container-narrow">
-        <div class="card p-8 md:p-10">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div>
-              <h2 class="text-2xl md:text-3xl font-bold text-slate-light">
-                Bachelor of Science
-              </h2>
-              <p class="text-xl text-accent">Software Development</p>
-            </div>
-            <div class="text-right">
-              <p class="text-slate-light font-semibold">Southern New Hampshire University</p>
-              <p class="text-slate">2019 - 2023</p>
-            </div>
-          </div>
-
-          <p class="text-slate mb-6">
-            Comprehensive program covering software engineering principles, system design,
-            database administration, mobile development, and IT infrastructure. Coursework
-            bridged programming (Java, C++, Python) with practical IT operations experience.
-          </p>
-
-          <div class="flex flex-wrap gap-2">
-            {['Software Engineering', 'Database Design', 'Mobile Development', 'Network Security', 'Agile/SDLC', 'Enterprise Architecture'].map(skill => (
-              <span class="px-3 py-1 bg-navy border border-slate-dark/30 rounded-full text-sm text-slate">
-                {skill}
-              </span>
-            ))}
-          </div>
+        <SectionHeading eyebrow="Southern New Hampshire University / 2019–2023" title="Bachelor of Science." accent="Software Development." description="Software engineering, databases, mobile development, and infrastructure, bringing programming fundamentals together with practical IT operations." />
+        <div class="flex flex-wrap gap-2">
+          {['Software Engineering', 'Database Design', 'Java / C++ / Python', 'Network Security', 'Agile / SDLC', 'Enterprise Architecture'].map(skill => <span class="portfolio-tag">{skill}</span>)}
         </div>
       </div>
     </section>
 
-    <!-- Certifications -->
-    <section class="section py-16">
+    <section id="certifications" class="section">
       <div class="container-narrow">
-        <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-8 text-center">
-          <span class="text-accent">⟨</span> Certifications <span class="text-accent">⟩</span>
-        </h2>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <SectionHeading eyebrow="Industry credentials" title="Grounded in" accent="systems and security." description="Certifications earned across network administration, Linux operations, and security fundamentals." />
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {certifications.map(cert => (
-            <div class="card text-center py-6">
-              <div
-                class="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center"
-                style={`background-color: ${cert.color}20; border: 2px solid ${cert.color}`}
-              >
-                <svg class="w-6 h-6" style={`color: ${cert.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-              </div>
-              <h3 class="font-semibold text-slate-light mb-1">{cert.name}</h3>
-              <p class="text-accent text-sm font-mono">{cert.code}</p>
-              <p class="text-slate text-xs mt-1">{cert.year}</p>
-            </div>
+            <article class="card border-t-2 border-t-accent-muted">
+              <h3>{cert.name}</h3>
+              <p class="text-accent font-mono text-sm mt-3">{cert.code}</p>
+              <p class="portfolio-copy mt-2">Earned {cert.year}</p>
+            </article>
           ))}
         </div>
       </div>
     </section>
 
-    <!-- Capstone Project -->
-    <section class="section py-16 bg-navy-light/30">
+    <section id="capstone" class="section bg-navy-light/30">
       <div class="container-narrow">
-        <div class="text-center mb-10">
-          <p class="heading-accent">IT 489 Capstone</p>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
-            F-Secure System Design
-          </h2>
-          <p class="text-slate max-w-2xl mx-auto">
-            Enterprise infrastructure design integrating modern networking, security,
-            and cloud technologies for a fictional security consulting firm.
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-6 mb-10">
-          {capstoneHighlights.map(item => (
-            <div class="card flex gap-4">
-              <div class="text-3xl">{item.icon}</div>
-              <div>
-                <h3 class="font-semibold text-slate-light mb-1">{item.title}</h3>
-                <p class="text-slate text-sm">{item.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div class="text-center">
-          <p class="text-slate text-sm mb-4">
-            Technologies: Fortinet FortiGate • Tailscale • Microsoft Azure • SD-WAN • Proxmox VE
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Notable Courses -->
-    <section class="section py-16">
-      <div class="container-narrow">
-        <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-8 text-center">
-          <span class="text-accent">⟨</span> Notable Coursework <span class="text-accent">⟩</span>
-        </h2>
-
+        <SectionHeading eyebrow="Featured case study / IT 420 & IT 489" title="From a design brief" accent="to a working lab." description="F-Secure System Design: an academic infrastructure project for a fictional company, followed by hands-on implementation in my own lab." />
         <div class="grid md:grid-cols-2 gap-4">
-          {courses.map(course => (
-            <div class="card">
-              <div class="flex items-center gap-3 mb-2">
-                <span class="px-2 py-1 bg-accent/10 text-accent text-xs font-mono rounded-sm">
-                  {course.code}
-                </span>
-                <h3 class="font-semibold text-slate-light">{course.name}</h3>
-              </div>
-              <p class="text-slate text-sm mb-3">{course.description}</p>
-              <div class="flex flex-wrap gap-2">
-                {course.highlights.map(h => (
-                  <span class="text-xs text-accent">• {h}</span>
-                ))}
-              </div>
-            </div>
+          <article class="card"><p class="section-eyebrow">01 / The brief</p><h3>Plan a secure expansion</h3><p class="portfolio-copy mt-3">Design an environment that brings together multiple sites, remote access, cloud services, and centralized security. The assignment connected enterprise architecture with network and security planning.</p></article>
+          <article class="card"><p class="section-eyebrow">02 / The design</p><h3>Connect the infrastructure</h3><p class="portfolio-copy mt-3">The design combined SD-WAN, FortiGate firewalls, Tailscale remote access, and Azure services. VLAN segmentation, inspection policies, and centralized logging supported the network design.</p></article>
+          <article class="card"><p class="section-eyebrow">03 / The implementation</p><h3>Test it in the lab</h3><p class="portfolio-copy mt-3">I took the work beyond the design document, using real FortiGate hardware, Tailscale networking, and Azure to explore the proposed setup. The lab made configuration and compatibility questions tangible.</p></article>
+          <article class="card"><p class="section-eyebrow">04 / The lesson</p><h3>Validate the connections</h3><p class="portfolio-copy mt-3">The project brought software lifecycle fundamentals together with networking and operations. Building the environment helped me understand the gap between a diagram and a system that can be configured, observed, and maintained.</p></article>
+        </div>
+        <a href="/lab" class="link inline-block mt-6">See how that work continues in the lab →</a>
+      </div>
+    </section>
+
+    <section id="academic-projects" class="section">
+      <div class="container-narrow">
+        <SectionHeading eyebrow="Selected academic work" title="Build something." accent="Learn from the decisions." description="Application development, database design, and team delivery each taught a different part of the engineering process." />
+        <div class="grid lg:grid-cols-3 gap-4">
+          {academicProjects.map(project => (
+            <article class="card flex flex-col">
+              <p class="section-eyebrow">{project.course}</p>
+              <h3>{project.name}</h3>
+              <p class="portfolio-copy mt-3">{project.description}</p>
+              <p class="portfolio-copy mt-4 pt-4 border-t border-slate-dark/40 grow"><strong class="text-accent">What I learned:</strong> {project.lesson}</p>
+              {project.href && <a href={project.href} class="link mt-5" target="_blank" rel="noopener noreferrer">View the code ↗</a>}
+            </article>
           ))}
         </div>
       </div>
     </section>
 
-    <!-- Projects from Coursework -->
-    <section class="section py-16 bg-navy-light/30">
+    <section id="coursework" class="section bg-navy-light/30">
       <div class="container-narrow">
-        <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-8 text-center">
-          <span class="text-accent">⟨</span> Academic Projects <span class="text-accent">⟩</span>
-        </h2>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <a
-            href="https://github.com/GhostKellz/EventTrackingApp"
-            target="_blank"
-            rel="noopener"
-            class="card group text-center py-8 hover:border-accent/50"
-          >
-            <div class="text-4xl mb-4">📱</div>
-            <h3 class="font-semibold text-slate-light group-hover:text-accent transition-colors mb-2">
-              Event Tracking App
-            </h3>
-            <p class="text-slate text-sm mb-3">
-              Android app with SQLite database, user auth, and SMS notifications.
-            </p>
-            <span class="text-accent text-sm">CS 360 →</span>
-          </a>
-
-          <div class="card text-center py-8">
-            <div class="text-4xl mb-4">🗄️</div>
-            <h3 class="font-semibold text-slate-light mb-2">
-              Quantigration RMA Database
-            </h3>
-            <p class="text-slate text-sm mb-3">
-              Full ERD design with complex SQL queries for RMA tracking system.
-            </p>
-            <span class="text-slate text-sm">DAD 220</span>
-          </div>
-
-          <div class="card text-center py-8">
-            <div class="text-4xl mb-4">🏗️</div>
-            <h3 class="font-semibold text-slate-light mb-2">
-              SD-WAN Architecture
-            </h3>
-            <p class="text-slate text-sm mb-3">
-              Enterprise network design with failover, security, and cloud integration.
-            </p>
-            <span class="text-slate text-sm">IT 420</span>
-          </div>
-        </div>
-
-        <div class="max-w-3xl mx-auto mt-12 space-y-5 text-slate leading-relaxed">
-          <p>
-            A lot of my degree was hands-on building, and the project I remember most is the event tracking app I wrote for CS 360. It was a native Android app in Java backed by a SQLite database, with a login screen, a grid calendar of upcoming events, and SMS notifications so users got reminded before something slipped past them, and I leaned on Material Design to keep it readable and consistent. I started out trying to clone a full Google Calendar style event grid, but partway through I realized the scope was getting away from me, so I pulled it back to a cleaner GridView that I could actually ship and polish, and that was a good early lesson in planning the thing you can finish instead of the thing that sounds impressive on paper.
-          </p>
-          <p>
-            CS 250 was where the process side clicked for me, because we ran a real Scrum team on a travel planning app and used JIRA for the backlog and burndown, GitHub for version control, and daily standups to keep everyone moving. Midway through, the team pivoted the whole product toward wellness and detox destinations to chase where the market was heading, and that meant tearing up user stories and test cases we had already written, but it taught me that change is something you embrace instead of fight, especially when you are iterating and the team has to stay adaptable. Around the same time in DAD 220 I built the relational database for Quantigration's RMA system, designing the ERD across customers, orders, and returns, writing the schema in MySQL, and then running the joins and aggregations that turned raw rows into something a stakeholder could actually use, like spotting that Massachusetts drove the highest return volume so quality control could put its resources where the problems really were.
-          </p>
-          <p>
-            My capstone work in IT 420 and IT 489 is the closest thing to what I do now for a living. I designed an enterprise security expansion for a fictional SaaS company called F-Secure, built around SD-WAN for traffic prioritization and failover, Fortinet FortiGate firewalls running both virtual and appliance based, Tailscale over WireGuard for zero-trust remote access, and Microsoft Azure underneath it for scale, and I layered in VLAN segmentation, full SSL inspection, IPS, web filtering, and centralized logging through Graylog so the whole thing could actually be watched. One of the real hurdles was waiting on regulatory clarity from partner ISPs and carriers, so instead of sitting idle I kicked off compatibility testing in parallel, which kept the project on schedule and ended up being a solid short-term fix.
-          </p>
-          <p>
-            What I am proudest of is that I did not stop at the design document, because I went and stood the whole thing up in my own homelab and got hands-on with Tailscale mesh networking, Azure, and SD-WAN on real FortiGate hardware, even adding custom DERP relays to cut down VPN latency. That capstone pulled together every thread from the program, the object-oriented and lifecycle fundamentals from the programming side and the networking, security, and cloud work from the IT side, and it is a big part of why building and breaking things in a lab is still how I learn best today.
-          </p>
+        <SectionHeading eyebrow="Coursework" title="The supporting" accent="fundamentals." />
+        <div class="grid md:grid-cols-2 gap-x-10">
+          {courses.map(course => (
+            <article class="py-5 border-t border-slate-dark/40">
+              <p class="text-accent font-mono text-xs mb-2">{course.code}</p>
+              <h3 class="text-lg font-semibold">{course.name}</h3>
+              <p class="portfolio-copy mt-2">{course.description}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
-
-    <!-- CTA -->
-    <section class="section text-center">
-      <div class="container-narrow">
-        <p class="text-slate mb-6">
-          See my professional projects and open source work.
-        </p>
-        <a href="/projects" class="btn btn-primary">
-          View Projects →
-        </a>
-      </div>
-    </section>
+    <section class="section text-center"><div class="container-narrow"><h2 class="section-title">See the work <span>that followed.</span></h2><p class="section-description mb-6">Explore the software and infrastructure projects I build today.</p><a href="/projects" class="btn btn-primary">View Projects →</a></div></section>
   </main>
-
-  <!-- Footer -->
-  <footer class="py-8 text-center">
-    <p class="text-slate text-sm font-mono">
-      <a href="/" class="text-accent hover:underline">← Back to Home</a>
-    </p>
-  </footer>
+  <footer class="py-8 text-center"><a href="/" class="link text-sm font-mono">← Back to Home</a></footer>
 </BaseLayout>

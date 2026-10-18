@@ -1,0 +1,142 @@
+---
+interface Node {
+  x: number; y: number; w: number; h: number;
+  title: string; lines: string[]; tone?: string;
+}
+interface Props { kind: 'overview' | 'gb10' | 'agent'; }
+const { kind } = Astro.props;
+const node = (x: number, y: number, w: number, title: string, lines: string[], tone = 'blue'): Node =>
+  ({ x, y, w, h: 44 + lines.length * 20, title, lines, tone });
+const overviewDesktop = [
+  node(24, 274, 202, 'Clients', ['Users · OpenCode', 'Jarvis · Applications']),
+  node(286, 80, 252, 'Hermes', ['Agent runtime · VM', 'Tools & automation'], 'violet'),
+  node(286, 274, 252, 'LiteLLM', ['Central model gateway · VM', 'Scoped API routing'], 'violet'),
+  node(286, 474, 252, 'Open WebUI', ['Chat interface · LXC container', 'Model access through LiteLLM'], 'violet'),
+  node(658, 66, 390, 'RTX 5090 workstation', ['vLLM inference endpoint']),
+  node(658, 174, 390, 'RTX 4090 system', ['vLLM inference endpoint']),
+  node(658, 282, 390, 'RTX 3070', ['vLLM inference endpoint']),
+  node(658, 390, 390, '2 × RTX 2060', ['vLLM endpoints · secondary GPU CI']),
+  node(658, 498, 390, '2 × DGX Spark · GB10', ['vLLM API on primary node', 'Worker over dedicated RDMA'], 'teal'),
+];
+const overviewMobile = [
+  node(48, 42, 318, 'Clients', ['Users · OpenCode · Jarvis', 'Applications']),
+  node(48, 162, 318, 'Hermes', ['Agent runtime & automation', 'Separate Proxmox VM'], 'violet'),
+  node(48, 310, 318, 'LiteLLM', ['Central model gateway', 'Separate Proxmox VM'], 'violet'),
+  node(48, 454, 318, 'Open WebUI', ['Chat interface · LXC container', 'Model access through LiteLLM'], 'violet'),
+  node(48, 636, 318, 'RTX 5090 workstation', ['vLLM inference endpoint']),
+  node(48, 736, 318, 'RTX 4090 system', ['vLLM inference endpoint']),
+  node(48, 836, 318, 'RTX 3070', ['vLLM inference endpoint']),
+  node(48, 936, 318, '2 × RTX 2060', ['vLLM endpoints · secondary GPU CI']),
+  node(48, 1036, 318, '2 × DGX Spark · GB10', ['vLLM API on primary node', 'Worker over dedicated RDMA'], 'teal'),
+];
+const variants = {
+  overview: {
+    title: 'Centralized AI request routing',
+    description: 'Users, OpenCode, Jarvis and applications call LiteLLM. Hermes and LiteLLM run in separate Proxmox VMs. Open WebUI provides browser chat in an LXC container and sends model requests up to LiteLLM. LiteLLM routes API requests to GPU-backed vLLM endpoints. The DGX Spark pair is one distributed deployment with an API on the primary node.',
+    desktop: { width: 1080, height: 620, nodes: overviewDesktop,
+      paths: ['M226 316 H286', 'M412 164 V274', 'M412 474 V358', ...[98,206,314,422,540].map(y => `M538 316 H594 V${y} H658`)],
+      groups: [{x:266,y:20,w:292,h:574,label:'PROXMOX SERVICES'}, {x:638,y:20,w:430,h:574,label:'GPU COMPUTE'}] },
+    mobile: { width: 390, height: 1150, nodes: overviewMobile,
+      paths: ['M48 84 H16 V352 H48', 'M207 246 V310', 'M207 454 V394', ...[668,768,868,968,1078].map(y => `M366 352 H378 V598 H24 V${y} H48`)],
+      groups: [] },
+  },
+  gb10: {
+    title: 'A distributed model across two GB10 nodes',
+    description: 'Client API traffic enters the DGX Spark primary from LiteLLM. A separate bidirectional 200 gigabit per second RoCE RDMA connection joins the primary and worker. Each has 128 GB unified memory, for 256 GB aggregate across two nodes, not one transparent memory pool.',
+    desktop: { width: 1080, height: 360, nodes: [
+      node(24,130,214,'LiteLLM',['Client API requests'],'violet'),
+      node(310,110,340,'DGX Spark · Primary',['GB10 · vLLM API', '128 GB unified memory'],'teal'),
+      node(726,110,330,'DGX Spark · Worker',['GB10 · distributed inference', '128 GB unified memory'],'teal')],
+      paths: ['M238 162 H310'], rdma: 'M650 152 H726', groups: [] },
+    mobile: { width:390,height:520,nodes:[
+      node(30,30,330,'LiteLLM',['Client API requests'],'violet'),
+      node(30,176,330,'DGX Spark · Primary',['GB10 · vLLM API','128 GB unified memory'],'teal'),
+      node(30,388,330,'DGX Spark · Worker',['GB10 · distributed inference','128 GB unified memory'],'teal')],
+      paths:['M195 94 V176'],rdma:'M195 260 V388',groups:[] },
+  },
+  agent: {
+    title: 'The agent execution loop',
+    description: 'Hermes sends context to LiteLLM and a selected vLLM endpoint. Model output returns to Hermes, where permissions and approvals govern tool execution. Tool results return to the agent for the next step.',
+    desktop: { width:1080,height:340,nodes:[
+      node(24,66,280,'Hermes',['Instructions · memory · context'],'violet'),
+      node(398,66,280,'LiteLLM → vLLM',['Model request & response']),
+      node(398,220,280,'Tools & integrations',['Approved actions · results'],'teal'),
+      node(768,220,288,'Execution controls',['Permissions · human review'],'violet')],
+      paths:['M304 86 H398','M398 110 H304','M164 130 V252 H398','M398 272 H130 V130','M768 252 H678'],groups:[] },
+    mobile:{width:390,height:590,nodes:[
+      node(48,30,318,'Hermes',['Instructions · memory · context'],'violet'),
+      node(48,174,318,'LiteLLM → vLLM',['Model request & response']),
+      node(48,330,318,'Execution controls',['Permissions · human review'],'violet'),
+      node(48,486,318,'Tools & integrations',['Approved actions · results'],'teal')],
+      paths:['M186 94 V174','M226 174 V94','M48 62 H20 V330 H48','M207 394 V486','M48 518 H8 V70 H48'],groups:[]},
+  },
+};
+const diagram = variants[kind];
+---
+
+<div class="diagram">
+  <label class="motion-toggle"><input type="checkbox" /> Pause diagram animation</label>
+  {(['desktop', 'mobile'] as const).map(size => {
+    const layout = diagram[size];
+    const id = `ai-${kind}-${size}`;
+    return (
+      <svg class={size} viewBox={`0 0 ${layout.width} ${layout.height}`} role="img" aria-labelledby={`${id}-title ${id}-desc`}>
+        <title id={`${id}-title`}>{diagram.title}</title>
+        <desc id={`${id}-desc`}>{diagram.description}</desc>
+        <defs>
+          <marker id={`${id}-arrow`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10z" fill="#22d3ee" />
+          </marker>
+          <marker id={`${id}-rdma`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10z" fill="#64ffda" />
+          </marker>
+        </defs>
+        {layout.groups.map(g => <g><rect class="group" x={g.x} y={g.y} width={g.w} height={g.h} rx="16" /><text class="group-label" x={g.x+20} y={g.y+25}>{g.label}</text></g>)}
+        {layout.paths.map(d => <path class="api flow" d={d} marker-end={`url(#${id}-arrow)`} />)}
+        {'rdma' in layout && <path class="rdma flow" d={layout.rdma} marker-start={`url(#${id}-rdma)`} marker-end={`url(#${id}-rdma)`} />}
+        {layout.nodes.map(n => <g class={n.tone}>
+          <rect class="node" x={n.x} y={n.y} width={n.w} height={n.h} rx="10" />
+          <rect class="stripe" x={n.x} y={n.y+16} width="3" height={n.h-32} rx="2" />
+          <text class="node-title" x={n.x+18} y={n.y+27}>{n.title}</text>
+          {n.lines.map((line,i) => <text class="node-sub" x={n.x+18} y={n.y+49+i*20}>{line}</text>)}
+        </g>)}
+        {kind === 'overview' && size === 'desktop' && <text class="edge-label" x="425" y="223">Model requests</text>}
+        {kind === 'overview' && size === 'mobile' && <text class="edge-label" x="63" y="582">SELECTED vLLM ENDPOINT</text>}
+        {kind === 'gb10' && <g>
+          <text class="rdma-label" text-anchor="middle" x={size === 'desktop' ? 688 : 195} y={size === 'desktop' ? 88 : 303}>200 Gb/s</text>
+          <text class="rdma-label" text-anchor="middle" x={size === 'desktop' ? 688 : 195} y={size === 'desktop' ? 226 : 331}>RoCE / RDMA</text>
+          {size === 'desktop' && <text class="edge-label" x="540" y="310" text-anchor="middle">256 GB aggregate unified memory across two nodes</text>}
+        </g>}
+      </svg>
+    );
+  })}
+</div>
+
+<style>
+  .diagram { width:100%; }
+  .motion-toggle { display:flex; align-items:center; gap:0.5rem; color:var(--color-slate-light); font-size:0.8125rem; margin-bottom:1rem; cursor:pointer; }
+  input { accent-color:var(--color-accent); }
+  input:focus-visible { outline:2px solid var(--color-accent); outline-offset:4px; }
+  .diagram:has(input:checked) .flow { animation-play-state:paused; }
+  svg { display:block; width:100%; height:auto; overflow:visible; }
+  .mobile { display:none; }
+  .group { fill:#0d1e36; stroke:#334867; stroke-width:1; }
+  .group-label { fill:#a7b8d8; font:600 12px 'Inter',sans-serif; letter-spacing:1.3px; }
+  .node { fill:#112240; stroke:#436783; stroke-width:1; }
+  .stripe { fill:#22d3ee; }
+  .violet .node { stroke:#4b8a91; fill:#102c3e; }
+  .violet .stripe { fill:#ccd6f6; }
+  .teal .node { stroke:#4dc9b0; fill:#103532; }
+  .teal .stripe { fill:#64ffda; }
+  .node-title { fill:#ccd6f6; font:600 16px 'Inter',sans-serif; }
+  .node-sub { fill:#a7b8d8; font:400 13px 'Inter',sans-serif; }
+  .api,.rdma { fill:none; stroke-width:2; stroke-linejoin:round; }
+  .api { stroke:#22d3ee; stroke-dasharray:7 7; }
+  .rdma { stroke:#64ffda; stroke-width:3; stroke-dasharray:3 5; }
+  .flow { animation:traffic 2s linear infinite; }
+  .edge-label { fill:#a7b8d8; font:500 13px 'Inter',sans-serif; }
+  .rdma-label { fill:#64ffda; font:600 14px 'Inter',sans-serif; paint-order:stroke; stroke:#112240; stroke-width:8px; }
+  @keyframes traffic { to { stroke-dashoffset:-28; } }
+  @media(max-width:767px) { .desktop { display:none; } .mobile { display:block; } }
+  @media(prefers-reduced-motion:reduce) { .flow { animation:none; } }
+</style>

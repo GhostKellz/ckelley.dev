@@ -3,7 +3,7 @@
 // driver and binds the card to vfio-pci, passing it whole into a Linux VM that
 // runs the nvidia-open driver. Inside the VM, Docker + the NVIDIA Container
 // Toolkit inject that single GPU into as many containers as the workload needs —
-// PyTorch, Ollama/vLLM, ComfyUI, Jupyter/CI — all sharing one physical card.
+// PyTorch, vLLM/SGLang, ComfyUI, Jupyter/CI — all sharing one physical card.
 interface FlowNode {
   x: number;
   y: number;
@@ -17,12 +17,12 @@ interface FlowNode {
 const N: Record<string, FlowNode> = {
   HOST: { x: 20, y: 146, w: 220, title: 'Proxmox host', subs: ['nouveau + nvidia blacklisted', 'GPU → vfio-pci'], node: '#3b82f6' },
   VM: { x: 300, y: 146, w: 210, title: 'Linux VM', subs: ['nvidia-open driver', 'q35 · OVMF'], node: '#22d3ee' },
-  DOCK: { x: 570, y: 146, w: 250, title: 'Docker + Container Toolkit', subs: ['injects GPU + CUDA libs', '--gpus all'], node: '#34d399' },
+  DOCK: { x: 570, y: 146, w: 250, title: 'Docker + Container Toolkit', subs: ['GPU + driver integration', '--gpus all'], node: '#34d399' },
   C1: { x: 890, y: 12, w: 210, title: 'PyTorch', subs: ['train / infer'] },
-  C2: { x: 890, y: 80, w: 210, title: 'Ollama / vLLM', subs: ['LLM serving'] },
+  C2: { x: 890, y: 80, w: 210, title: 'vLLM / SGLang', subs: ['LLM serving'] },
   C3: { x: 890, y: 148, w: 210, title: 'ComfyUI · SD', subs: ['image / video gen'] },
   C4: { x: 890, y: 216, w: 210, title: 'Jupyter · CI', subs: ['notebooks · tests'] },
-  C5: { x: 890, y: 284, w: 210, title: '+ dozens more', subs: ['all share one GPU'], node: '#64ffda', glow: true },
+  C5: { x: 890, y: 284, w: 210, title: 'Other GPU workloads', subs: ['capacity permitting'], node: '#64ffda', glow: true },
 };
 
 const lineH = 13;
@@ -70,8 +70,8 @@ const chip = (e: FlowEdge) => {
     <desc id="nct-desc">
       The Proxmox host blacklists nouveau and the nvidia driver and binds the card to vfio-pci, passing
       it whole into a Linux VM running the nvidia-open driver. Inside the VM, Docker and the NVIDIA
-      Container Toolkit inject that single GPU into many containers at once, so PyTorch, Ollama or
-      vLLM, ComfyUI, Jupyter and CI all share one physical card.
+      Container Toolkit inject that single GPU into many containers at once, so PyTorch, vLLM or
+      SGLang, ComfyUI, Jupyter and CI all share one physical card.
     </desc>
     <defs>
       <marker id="arrow-nct" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">

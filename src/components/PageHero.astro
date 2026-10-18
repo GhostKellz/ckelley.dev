@@ -1,0 +1,15 @@
+---
+interface Props { eyebrow: string; title: string; accent: string; description: string; links?: { id: string; label: string }[]; }
+const { eyebrow, title, accent, description, links = [] } = Astro.props;
+---
+<section class="section page-hero">
+  <div class="container-narrow">
+    <p class="section-eyebrow">{eyebrow}</p>
+    <h1 class="page-title">{title}<br /><span class="text-gradient">{accent}</span></h1>
+    <p class="page-description">{description}</p>
+    <slot />
+    {links.length > 0 && <nav class="page-jumps" aria-label={`${eyebrow} sections`}>
+      {links.map(link => <a href={`#${link.id}`}>{link.label}<span aria-hidden="true"> ↗</span></a>)}
+    </nav>}
+  </div>
+</section>

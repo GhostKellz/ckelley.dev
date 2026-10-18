@@ -1,17 +1,12 @@
 ---
-const highlights = [
-  { label: 'Proxmox Nodes', value: '7+', icon: '🖥️' },
-  { label: 'VMs & Containers', value: '50+', icon: '📦' },
-  { label: 'Storage (TB)', value: '100+', icon: '💾' },
-  { label: 'Uptime', value: '99.9%', icon: '⚡' },
-];
+import { infrastructureHighlights as highlights } from '../data/infrastructure';
 ---
 
 <section id="infrastructure" class="section overflow-hidden">
   <div class="container-narrow">
     <div class="reveal text-center mb-12">
       <p class="heading-accent">03. Infrastructure</p>
-      <h2 class="heading">Homelab & Production Environment</h2>
+      <h2 class="heading">Built in the lab. <span>Operated every day.</span></h2>
       <p class="text-slate max-w-2xl mx-auto">
         I run a production-grade homelab that doubles as a learning platform and a real-world
         testing ground for enterprise solutions, from a Proxmox cluster to a full
@@ -21,7 +16,7 @@ const highlights = [
 
     <!-- Stats Grid with subtle parallax -->
     <div
-      class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 parallax-element"
+      class="reveal grid grid-cols-3 gap-4 mb-12 parallax-element"
       data-parallax-speed="0.05"
       style="transition-delay: 0.1s;"
     >
@@ -35,10 +30,11 @@ const highlights = [
     </div>
 
     <!-- CTA into the Lab deep-dive -->
-    <div class="reveal text-center" style="transition-delay: 0.2s;">
+    <div class="reveal flex flex-wrap justify-center gap-3" style="transition-delay: 0.2s;">
       <a href="/lab" class="btn btn-primary">
         Explore the Lab →
       </a>
+      <a href="/ai" class="btn btn-secondary">Explore the AI Stack →</a>
     </div>
   </div>
 </section>

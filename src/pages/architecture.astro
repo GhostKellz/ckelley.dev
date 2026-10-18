@@ -27,6 +27,8 @@ import ArchBackupFlow from '@components/diagram/flows/ArchBackupFlow.astro';
 import ProxmoxBackupFlow from '@components/diagram/flows/ProxmoxBackupFlow.astro';
 import VeeamBackupFlow from '@components/diagram/flows/VeeamBackupFlow.astro';
 import BackupEncryptionFlow from '@components/diagram/flows/BackupEncryptionFlow.astro';
+import AIWorkflowDiagram from '@components/diagram/AIWorkflowDiagram.astro';
+import SectionHeading from '@components/SectionHeading.astro';
 import '@styles/global.css';
 
 const navSections = [
@@ -46,7 +48,7 @@ const navSections = [
 
 const domains = [
   { id: 'virtualization', label: 'Virtualization', icon: '🧮', tone: 'text-blue-light', body: 'A nine-node Proxmox cluster with HA, ZFS, SDN, and GPU passthrough.' },
-  { id: 'ai', label: 'AI / Inference', icon: '🧠', tone: 'text-violet-light', body: 'Local-first inference across multiple GPUs, vLLM, Ollama, and an agent harness.' },
+  { id: 'ai', label: 'AI / Inference', icon: '🧠', tone: 'text-violet-light', body: 'Local-first inference across multiple GPUs, vLLM, SGLang, LiteLLM routing, and Hermes orchestration.' },
   { id: 'security', label: 'Security', icon: '🛡️', tone: 'text-danger-light', body: 'Distributed CrowdSec, FortiGate edge, DNS failover, all infra over Tailscale.' },
   { id: 'observability', label: 'Observability', icon: '📊', tone: 'text-emerald-light', body: 'Heimdall: metrics, logs, and SIEM into a single tailnet-only pane of glass.' },
 ];
@@ -54,7 +56,7 @@ const domains = [
 
 <BaseLayout
   title="Architecture | Christopher Kelley"
-  description="A whole-stack architecture deep-dive: dual-WAN FortiGate SD-WAN, a Proxmox cluster with VFIO GPU passthrough, local-first AI inference with vLLM and Ollama, distributed CrowdSec security with a public threat feed, and full Heimdall observability, all wired over a Tailscale control plane."
+  description="A whole-stack architecture deep-dive: dual-WAN FortiGate SD-WAN, a Proxmox cluster with VFIO GPU passthrough, local-first AI inference with vLLM, LiteLLM, and a DGX Spark cluster, distributed CrowdSec security with a public threat feed, and full Heimdall observability, all wired over a Tailscale control plane."
 >
   <Navigation />
   <SectionNav sections={navSections} />
@@ -170,17 +172,17 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            The edge is a <span class="text-slate-light">FortiGate</span> bonding a 2.5 GbE fiber line
+            The edge is a <span class="text-accent font-semibold">FortiGate</span> bonding a 2.5 GbE fiber line
             with a cable circuit into one resilient pipe, where SD-WAN health checks fail traffic over
             if a link drops and SLA-based steering keeps latency-sensitive workloads on the best path.
             Behind it, a dual-resolver DNS setup and a VLAN-trunked core fan out to the
-            <span class="text-slate-light">local Proxmox cluster</span> on
-            <span class="text-slate-light">10.0.0.0/24</span>, a cloud Proxmox node on its own
-            <span class="text-slate-light">10.10.10.0/24</span> SDN, a public DMZ, and a separate
+            <span class="text-accent font-semibold">local Proxmox cluster</span> on
+            <span class="text-accent font-semibold">10.0.0.0/24</span>, a cloud Proxmox node on its own
+            <span class="text-accent font-semibold">10.10.10.0/24</span> SDN, a public DMZ, and a separate
             second homelab on its own VLAN and firewall.
           </p>
           <p>
-            The piece that ties it all together is <span class="text-slate-light">Tailscale</span>.
+            The piece that ties it all together is <span class="text-accent font-semibold">Tailscale</span>.
             Rather than exposing management interfaces, every site joins one tailnet and all
             administrative traffic (SSH, the CrowdSec LAPI, the Wazuh indexer, Grafana and Prometheus)
             rides that overlay with strict ACLs and authenticated SSH on every session. The only things
@@ -208,10 +210,10 @@ const domains = [
         <div class="mb-12 rounded-lg border border-aqua-light/30 bg-aqua-light/5 px-5 py-5 reveal" style="box-shadow: 0 0 24px -8px #22d3ee;">
           <p class="text-aqua-light font-mono text-xs uppercase tracking-wider mb-3 text-center">Speeds &amp; Feeds · Line-Rate With the Brain On</p>
           <ul class="text-slate-light text-sm max-w-3xl mx-auto leading-relaxed space-y-1.5 list-none">
-            <li>⚡ <span class="text-slate-light font-semibold">2.5 Gbps symmetric</span> internet on the WAN1 fiber (static block), sustained with <span class="text-slate-light">Full SSL Inspection + IPS + Fortinet threat protection</span> all enabled.</li>
-            <li>🔀 The <span class="text-slate-light">10 GbE WAN port repurposed as the LAN uplink</span> → 10 G UniFi switch → 2.5 G access switches; a 1 GbE LAN port redefined as <span class="text-slate-light">WAN2</span>, the cable backup for SD-WAN failover.</li>
-            <li>🧮 <span class="text-slate-light">10 G east-west</span> between the Arch workstation and the entire PVE cluster + backup hosts, VLAN-segmented on the switched fabric.</li>
-            <li>📶 <span class="text-slate-light">2× U7 Pro XG</span> delivering ≈1.5 Gbps symmetric Wi-Fi; Guest50 and IOT60 client-isolated via the UniFi Network Controller.</li>
+            <li>⚡ <span class="text-accent font-semibold">2.5 Gbps symmetric</span> internet on the WAN1 fiber (static block), sustained with <span class="text-accent font-semibold">Full SSL Inspection + IPS + Fortinet threat protection</span> all enabled.</li>
+            <li>🔀 The <span class="text-accent font-semibold">10 GbE WAN port repurposed as the LAN uplink</span> → 10 G UniFi switch → 2.5 G access switches; a 1 GbE LAN port redefined as <span class="text-accent font-semibold">WAN2</span>, the cable backup for SD-WAN failover.</li>
+            <li>🧮 <span class="text-accent font-semibold">10 G east-west</span> between the Arch workstation and the entire PVE cluster + backup hosts, VLAN-segmented on the switched fabric.</li>
+            <li>📶 <span class="text-accent font-semibold">2× U7 Pro XG</span> delivering ≈1.5 Gbps symmetric Wi-Fi; Guest50 and IOT60 client-isolated via the UniFi Network Controller.</li>
           </ul>
         </div>
 
@@ -250,7 +252,7 @@ const domains = [
           <DiagramFrame tone="aqua" scroll={true} eyebrow="Deep inspection" title="Full SSL Inspection · Controlled MITM">
             <SslInspectionFlow />
             <Fragment slot="legend">
-              <span>Two TLS sessions: the FortiGate re-signs with <span class="text-slate-light">CKEL_ROOT_CA</span> to the client while validating the origin's real cert.</span>
+              <span>Two TLS sessions: the FortiGate re-signs with <span class="text-accent font-semibold">CKEL_ROOT_CA</span> to the client while validating the origin's real cert.</span>
               <span><span class="inline-block w-6 align-middle mr-1.5" style="border-top:1.5px dotted #fbbf24;"></span>Dotted = decrypted payload handed to inspection</span>
             </Fragment>
           </DiagramFrame>
@@ -268,23 +270,23 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            The edge is a single <span class="text-slate-light">FortiGate 90G</span> pushed well past a
-            typical home deployment. <span class="text-slate-light">SD-WAN</span> bonds a 2.5 GbE fiber
-            primary with a 1 GbE cable backup in the <span class="text-slate-light">wan-failover-link</span>
+            The edge is a single <span class="text-accent font-semibold">FortiGate 90G</span> pushed well past a
+            typical home deployment. <span class="text-accent font-semibold">SD-WAN</span> bonds a 2.5 GbE fiber
+            primary with a 1 GbE cable backup in the <span class="text-accent font-semibold">wan-failover-link</span>
             zone, where Performance SLA health probes drive both automatic failover and application-aware
             steering. When configured for it, SD-WAN also spreads sessions across both links at once by
             bandwidth ratio for aggregate throughput.
           </p>
           <p>
-            On the application side, a <span class="text-slate-light">Virtual Server</span> offloads SSL and
+            On the application side, a <span class="text-accent font-semibold">Virtual Server</span> offloads SSL and
             load-balances across a health-checked nginx pool, while
-            <span class="text-slate-light">Full SSL Inspection</span> acts as a controlled man-in-the-middle:
+            <span class="text-accent font-semibold">Full SSL Inspection</span> acts as a controlled man-in-the-middle:
             the FortiGate terminates two TLS sessions, re-signing to managed clients with its own
-            <span class="text-slate-light">CKEL_ROOT_CA</span> while validating each origin's real
-            certificate. That decrypted stream is what makes <span class="text-slate-light">Layer-7
+            <span class="text-accent font-semibold">CKEL_ROOT_CA</span> while validating each origin's real
+            certificate. That decrypted stream is what makes <span class="text-accent font-semibold">Layer-7
             filtering</span> possible. Application control, web filtering, IPS, antivirus, DNS filtering and
             DLP all inspect the payload in the clear before it is re-encrypted and a single policy verdict is
-            applied. The notable part is doing all of this at <span class="text-slate-light">2.5 Gbps
+            applied. The notable part is doing all of this at <span class="text-accent font-semibold">2.5 Gbps
             symmetric</span> with inspection fully enabled.
           </p>
         </div>
@@ -328,10 +330,10 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            The compute layer is a nine-node <span class="text-slate-light">Proxmox VE</span> cluster
+            The compute layer is a nine-node <span class="text-accent font-semibold">Proxmox VE</span> cluster
             spanning everything from an EPYC server to small-form-factor boxes, tied together with
             Corosync quorum and HA so guests live-migrate and restart automatically when a node drops.
-            Storage is <span class="text-slate-light">ZFS</span> end to end. NVMe mirrors and RAIDz2
+            Storage is <span class="text-accent font-semibold">ZFS</span> end to end. NVMe mirrors and RAIDz2
             pools run compression and scheduled scrubs, and their snapshots feed both replication
             between nodes and the backup chain.
           </p>
@@ -346,10 +348,10 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mb-12">
           <p>
-            Because everything runs on <span class="text-slate-light">KVM</span>, the cluster can boot
+            Because everything runs on <span class="text-accent font-semibold">KVM</span>, the cluster can boot
             virtually any operating system, from Windows and any Linux distro to
-            <span class="text-slate-light">macOS via OpenCore</span>. A guest is available for testing
-            on essentially <span class="text-slate-light">any OS environment</span> on real hardware,
+            <span class="text-accent font-semibold">macOS via OpenCore</span>. A guest is available for testing
+            on essentially <span class="text-accent font-semibold">any OS environment</span> on real hardware,
             without dedicated machines or dual-booting.
           </p>
         </div>
@@ -378,8 +380,8 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            For workloads that need real hardware, <span class="text-slate-light">VFIO passthrough</span>
-            isolates a GPU's IOMMU group, binds it to <span class="text-slate-light">vfio-pci</span>, and
+            For workloads that need real hardware, <span class="text-accent font-semibold">VFIO passthrough</span>
+            isolates a GPU's IOMMU group, binds it to <span class="text-accent font-semibold">vfio-pci</span>, and
             hands it straight into a q35/OVMF guest, so a full RTX 4090 runs inside a VM at close to
             bare-metal speed as a dedicated inference node.
           </p>
@@ -395,9 +397,9 @@ const domains = [
             <span class="text-violet-light">⟨</span> Arch Workstation · High-Perf Virtualization <span class="text-violet-light">⟩</span>
           </h2>
           <p class="text-slate max-w-2xl mx-auto">
-            Separate from the cluster: a single <span class="text-slate-light">Arch Linux</span> daily
-            driver (Ryzen 9950X3D · RTX 5090) where <span class="text-slate-light">KVM + VFIO passthrough</span>
-            hands a real GPU to a Windows guest, and <span class="text-slate-light">Looking Glass</span>
+            Separate from the cluster: a single <span class="text-accent font-semibold">Arch Linux</span> daily
+            driver (Ryzen 9950X3D · RTX 5090) where <span class="text-accent font-semibold">KVM + VFIO passthrough</span>
+            hands a real GPU to a Windows guest, and <span class="text-accent font-semibold">Looking Glass</span>
             mirrors it back as a lossless, near bare-metal desktop.
           </p>
         </div>
@@ -417,15 +419,15 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            The daily driver runs <span class="text-slate-light">Arch Linux</span> as the KVM host.
-            <span class="text-slate-light">VFIO passthrough</span> isolates the GPU's IOMMU group, binds it
-            to <span class="text-slate-light">vfio-pci</span>, and hands it into a q35/OVMF
-            <span class="text-slate-light">Windows guest</span>, so the VM drives a real GPU at close to
+            The daily driver runs <span class="text-accent font-semibold">Arch Linux</span> as the KVM host.
+            <span class="text-accent font-semibold">VFIO passthrough</span> isolates the GPU's IOMMU group, binds it
+            to <span class="text-accent font-semibold">vfio-pci</span>, and hands it into a q35/OVMF
+            <span class="text-accent font-semibold">Windows guest</span>, so the VM drives a real GPU at close to
             bare-metal speed.
           </p>
           <p>
-            <span class="text-slate-light">Looking Glass</span> then copies each guest frame through an
-            <span class="text-slate-light">IVSHMEM</span> shared-memory region into a client on the Arch
+            <span class="text-accent font-semibold">Looking Glass</span> then copies each guest frame through an
+            <span class="text-accent font-semibold">IVSHMEM</span> shared-memory region into a client on the Arch
             host. The result is an uncompressed, low-latency desktop with no video encode and no network
             hop, so 3D apps and CUDA workloads inside Windows run at effectively bare-metal performance,
             in a window right alongside Linux.
@@ -452,17 +454,17 @@ const domains = [
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
             The split only works because the GPUs land in clean
-            <span class="text-slate-light">IOMMU groups</span>. The discrete
-            <span class="text-slate-light">RTX 5090</span>, along with its HDMI-audio function, is stubbed to
-            <span class="text-slate-light">vfio-pci</span> at boot and handed whole to the guest, while the
-            CPU's <span class="text-slate-light">Radeon iGPU</span> keeps the native
-            <span class="text-slate-light">amdgpu</span> driver and drives the Arch desktop, so the host
+            <span class="text-accent font-semibold">IOMMU groups</span>. The discrete
+            <span class="text-accent font-semibold">RTX 5090</span>, along with its HDMI-audio function, is stubbed to
+            <span class="text-accent font-semibold">vfio-pci</span> at boot and handed whole to the guest, while the
+            CPU's <span class="text-accent font-semibold">Radeon iGPU</span> keeps the native
+            <span class="text-accent font-semibold">amdgpu</span> driver and drives the Arch desktop, so the host
             still has a display to render the Looking Glass client into.
           </p>
           <p>
             This is the same approach on both the cluster and the workstation: I
-            <span class="text-slate-light">spec motherboards with proper IOMMU support</span> up front so
-            devices land in clean groups on their own. <span class="text-slate-light">ACS-override
+            <span class="text-accent font-semibold">spec motherboards with proper IOMMU support</span> up front so
+            devices land in clean groups on their own. <span class="text-accent font-semibold">ACS-override
             patches</span> work and have been reliable enough when I've needed them, but choosing
             hardware that groups correctly removes the need for them entirely. The payoff is fewer
             kernel patches, cleaner upgrades, and predictable passthrough.
@@ -479,7 +481,7 @@ const domains = [
             <span class="text-emerald-light">⟨</span> Backup &amp; Disaster Recovery <span class="text-emerald-light">⟩</span>
           </h2>
           <p class="text-slate max-w-2xl mx-auto">
-            Every dataset rides a <span class="text-slate-light">3-2-1</span> footing, and the restores
+            Every dataset rides a <span class="text-accent font-semibold">3-2-1</span> footing, and the restores
             are tested, not assumed. Each platform has its own chain, all converging on encrypted offsite
             copies in Wasabi.
           </p>
@@ -490,15 +492,15 @@ const domains = [
           style="box-shadow: 0 0 24px -8px #34d399;">
           <p class="text-sm uppercase tracking-wider text-emerald-light font-mono mb-3">What 3-2-1 means</p>
           <ul class="grid sm:grid-cols-3 gap-4 text-slate text-sm leading-relaxed">
-            <li><span class="text-slate-light font-semibold">3 copies</span> means the live data plus two
+            <li><span class="text-accent font-semibold">3 copies</span> means the live data plus two
               backups, so a single loss is never fatal.</li>
-            <li><span class="text-slate-light font-semibold">2 media types</span> means on-disk ZFS/NVMe plus a
+            <li><span class="text-accent font-semibold">2 media types</span> means on-disk ZFS/NVMe plus a
               separate backup appliance (PBS / Synology / Veeam repo), so one failure mode can't take both.</li>
-            <li><span class="text-slate-light font-semibold">1 offsite</span> means a geo-separated, encrypted
+            <li><span class="text-accent font-semibold">1 offsite</span> means a geo-separated, encrypted
               copy in Wasabi that survives a site-level disaster.</li>
           </ul>
           <p class="text-slate text-sm mt-4 pt-4 border-t border-slate-dark/60">
-            The unofficial <span class="text-slate-light">+1</span>: restores are rehearsed on a schedule.
+            The unofficial <span class="text-accent font-semibold">+1</span>: restores are rehearsed on a schedule.
             A backup you haven't restored is a hope, not a recovery plan.
           </p>
         </div>
@@ -561,26 +563,26 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            The <span class="text-slate-light">Arch daily driver</span> runs btrfs with a flat subvolume
-            layout, and <span class="text-slate-light">snapper</span> keeps an automated ~30-day window of
+            The <span class="text-accent font-semibold">Arch daily driver</span> runs btrfs with a flat subvolume
+            layout, and <span class="text-accent font-semibold">snapper</span> keeps an automated ~30-day window of
             local snapshots. Pre/post-pacman and timeline snapshots make a bad upgrade a one-command
-            rollback. A systemd-timed <span class="text-slate-light">restic</span> job then takes encrypted,
-            file-level copies of <span class="text-slate-light">/home</span> and
-            <span class="text-slate-light">/data</span> to a Synology NAS, which HyperBackup mirrors offsite
+            rollback. A systemd-timed <span class="text-accent font-semibold">restic</span> job then takes encrypted,
+            file-level copies of <span class="text-accent font-semibold">/home</span> and
+            <span class="text-accent font-semibold">/data</span> to a Synology NAS, which HyperBackup mirrors offsite
             to Wasabi.
           </p>
           <p>
-            The <span class="text-slate-light">Proxmox cluster</span> leans on
-            <span class="text-slate-light">Proxmox Backup Server</span> for incremental, deduplicated,
+            The <span class="text-accent font-semibold">Proxmox cluster</span> leans on
+            <span class="text-accent font-semibold">Proxmox Backup Server</span> for incremental, deduplicated,
             client-encrypted guest backups, with ZFS replication between nodes for warm standby; PBS and the
-            offsite cloud PVE node both sync to Wasabi. The <span class="text-slate-light">Hyper-V lab</span>
-            uses <span class="text-slate-light">Veeam</span> for application-consistent full image backups
+            offsite cloud PVE node both sync to Wasabi. The <span class="text-accent font-semibold">Hyper-V lab</span>
+            uses <span class="text-accent font-semibold">Veeam</span> for application-consistent full image backups
             daily plus incrementals, kept hot locally for ~45 days before older restore points age out to a
             Wasabi capacity tier.
           </p>
           <p>
-            Privacy is non-negotiable: <span class="text-slate-light">restic</span> and
-            <span class="text-slate-light">Veeam</span> encrypt client-side, so keys never leave the host and
+            Privacy is non-negotiable: <span class="text-accent font-semibold">restic</span> and
+            <span class="text-accent font-semibold">Veeam</span> encrypt client-side, so keys never leave the host and
             only ciphertext crosses the wire. Wasabi adds its own encryption at rest and stores everything
             deduplicated. The provider never holds a key or sees plaintext.
           </p>
@@ -625,19 +627,19 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            The primary storage host runs a <span class="text-slate-light">RAIDZ2</span> pool with ZFS
-            double parity, so it can lose <span class="text-slate-light">two drives at once</span> and
+            The primary storage host runs a <span class="text-accent font-semibold">RAIDZ2</span> pool with ZFS
+            double parity, so it can lose <span class="text-accent font-semibold">two drives at once</span> and
             stay online, which matters most on the wide, high-capacity vdevs where a second disk can fail
-            during a rebuild. The rest of the cluster runs <span class="text-slate-light">ZFS mirrors
+            during a rebuild. The rest of the cluster runs <span class="text-accent font-semibold">ZFS mirrors
             (RAID1)</span>: each vdev keeps a full copy, so a failed drive resilvers fast from its twin
             with minimal performance hit, the right trade for the smaller NVMe pools backing VMs.
           </p>
           <p>
-            The <span class="text-slate-light">Synology NAS</span> uses
-            <span class="text-slate-light">SHR (Synology Hybrid RAID)</span> with btrfs under the hood, which
-            adds flexible redundancy across <span class="text-slate-light">mixed-size drives</span> (no
+            The <span class="text-accent font-semibold">Synology NAS</span> uses
+            <span class="text-accent font-semibold">SHR (Synology Hybrid RAID)</span> with btrfs under the hood, which
+            adds flexible redundancy across <span class="text-accent font-semibold">mixed-size drives</span> (no
             wasted capacity from matching the smallest disk) plus btrfs block checksums and self-healing.
-            Across all three, <span class="text-slate-light">ZFS and btrfs checksum every block</span> and
+            Across all three, <span class="text-accent font-semibold">ZFS and btrfs checksum every block</span> and
             scheduled scrubs catch and repair bit rot before it spreads. Redundancy isn't a substitute for
             the 3-2-1 backups above. It's what keeps everything serving while a disk gets replaced.
           </p>
@@ -653,9 +655,8 @@ const domains = [
             <span class="text-violet-light">⟨</span> GPU Compute &amp; CUDA <span class="text-violet-light">⟩</span>
           </h2>
           <p class="text-slate max-w-2xl mx-auto">
-            The compute substrate under the inference stack: one CUDA toolchain delivered to bare-metal,
-            VMs, and containers alike, then pooled across the cluster so jobs land on whichever GPU is
-            free.
+            CUDA workloads run on native hosts, GPU passthrough VMs, and containers.
+            Model requirements and available capacity guide placement across the daily-use GPUs and Spark cluster.
           </p>
         </div>
 
@@ -674,7 +675,7 @@ const domains = [
 
         <!-- CUDA across the cluster -->
         <div class="mt-10 reveal">
-          <DiagramFrame tone="violet" eyebrow="Pooled compute" title="CUDA Across the Proxmox Cluster" scroll={true}>
+          <DiagramFrame tone="violet" eyebrow="Workload placement" title="CUDA Across the GPU Systems" scroll={true}>
             <CudaClusterFlow />
             <Fragment slot="legend">
               <span class="inline-flex items-center gap-1.5">
@@ -683,7 +684,7 @@ const domains = [
               </span>
               <span class="inline-flex items-center gap-1.5">
                 <span class="inline-block w-3 h-3 rounded-sm" style="background:#22d3ee"></span>
-                DGX batch nodes
+                DGX Spark pair
               </span>
             </Fragment>
           </DiagramFrame>
@@ -691,24 +692,17 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            CUDA reaches workloads three ways from one toolchain: <span class="text-slate-light">native</span>
-            on the Arch desktop, inside a <span class="text-slate-light">VFIO passthrough guest</span>
-            (the same mechanism that powers Looking Glass, so a VM gets a real GPU with full CUDA), and
-            inside <span class="text-slate-light">containers</span> via the
-            <span class="text-slate-light">NVIDIA Container Toolkit</span>, which injects the GPU and
-            libraries without baking a driver into the image. Every path converges on the same
-            frameworks (<span class="text-slate-light">PyTorch, vLLM, Ollama, and nvcc</span>), so code
-            moves between bare-metal, a VM, and a container unchanged.
+            CUDA reaches workloads through three deployment paths: <span class="text-accent font-semibold">native execution</span>
+            on the Arch desktop, a <span class="text-accent font-semibold">VFIO passthrough guest</span> with its own GPU driver,
+            or <span class="text-accent font-semibold">containers with the NVIDIA Container Toolkit</span>.
+            PyTorch, vLLM, SGLang, and ComfyUI use the GPU through the software environment configured for each workload.
+            Moving a workload still requires compatible drivers, dependencies, and GPU support.
           </p>
           <p>
-            Across the cluster, GPU work is scheduled to whichever node has the right card free. A full
-            <span class="text-slate-light">RTX 4090</span> handles heavy compute, an
-            <span class="text-slate-light">RTX 3070</span> or a pair of
-            <span class="text-slate-light">RTX 2060s</span> takes lighter inference and CI, two clustered
-            <span class="text-slate-light">DGX Spark</span> units run batch, and the
-            <span class="text-slate-light">RTX 5090</span> desktop covers burst. When several jobs want the
-            same card, <span class="text-slate-light">MIG partitioning and time-slicing</span> share it
-            safely; AMD and iGPU-only nodes stay out of the CUDA pool and take non-CUDA work.
+            The <span class="text-accent font-semibold">RTX 5090, RTX 4090, and two-node DGX Spark cluster</span>
+            are my primary daily compute systems. The smaller cards support lighter inference, testing, and CI.
+            I allocate work around model memory requirements and available capacity; concurrent jobs still compete
+            for the same physical GPU resources. AMD and integrated GPUs handle work outside the CUDA stack.
           </p>
         </div>
 
@@ -717,8 +711,8 @@ const domains = [
           <p class="text-sm uppercase tracking-wider text-violet-light font-mono mb-2">Container GPU sharing</p>
           <h3 class="text-xl md:text-2xl font-bold text-slate-light mb-2">NVIDIA Container Toolkit</h3>
           <p class="text-slate max-w-2xl mx-auto">
-            One GPU, many workloads: the toolkit lets dozens of Docker containers share a single card,
-            both inside a Proxmox passthrough VM and bare-metal on the Arch host.
+            The toolkit exposes GPU devices to containers on the Arch host or inside a GPU passthrough VM.
+            Workload concurrency depends on the card’s available memory and compute capacity.
           </p>
         </div>
 
@@ -748,138 +742,58 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            A common pattern is to put one GPU behind a <span class="text-slate-light">Proxmox
-            passthrough VM</span>: the host blacklists <span class="text-slate-light">nouveau and the
-            nvidia driver</span> and binds the card to <span class="text-slate-light">vfio-pci</span>, then
-            hands it whole to a Linux VM running the <span class="text-slate-light">nvidia-open</span>
-            driver. Inside that VM, <span class="text-slate-light">Docker + the NVIDIA Container
-            Toolkit</span> expose the GPU to as many containers as the work needs. PyTorch, Ollama or
-            vLLM, ComfyUI, Jupyter, and CI each request it with a simple
-            <span class="text-slate-light">--gpus all</span> and share the one physical card. It isn't
-            PVE-only either: the same Docker + toolkit setup runs <span class="text-slate-light">on the
-            Arch host bare-metal</span>, sharing the RTX 5090 across containers without a VM in the middle.
+            A <span class="text-accent font-semibold">Proxmox passthrough VM</span> receives a physical GPU through
+            <span class="text-accent font-semibold">vfio-pci</span> and runs the NVIDIA driver inside the guest.
+            Docker and the NVIDIA Container Toolkit then expose that GPU to selected containers.
+            The same container pattern works directly on the Arch host for native GPU workloads.
           </p>
           <p>
-            The win is that the <span class="text-slate-light">GPU driver lives in exactly one
-            place</span>, the VM or the bare-metal host, while container images carry
-            <span class="text-slate-light">no driver at all</span>; the toolkit injects the device and
-            matching CUDA libraries at runtime. That keeps images small and portable, lets many isolated
-            environments (different CUDA/Python versions, conflicting deps) run side by side on one card,
-            and turns GPU workflows into disposable, reproducible containers instead of a hand-tuned host.
+            The <span class="text-accent font-semibold">kernel driver stays on the container host</span>, whether that host is
+            a VM or a physical machine. Images carry application dependencies and their required CUDA runtime,
+            while the toolkit provides device access and driver integration. Containers separate software environments;
+            GPU memory and compute still need capacity planning.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- ── AI / Inference ──────────────────────────────────────────── -->
+    <!-- AI routing and distributed inference -->
     <section id="ai" class="section py-16 bg-navy-light/30">
       <div class="container-narrow">
-        <div class="mb-8 text-center">
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-light mb-2">
-            <span class="text-violet-light">⟨</span> AI &amp; Inference <span class="text-violet-light">⟩</span>
-          </h2>
-          <p class="text-slate max-w-2xl mx-auto">
-            Local-first inference on hardware I own, scaled across GPUs and hosts when a model is too
-            big for one card, with cloud as burst capacity behind a provider-agnostic agent harness.
-          </p>
+        <SectionHeading eyebrow="AI / Request path" title="One gateway." accent="Connected compute." description="Hermes, Open WebUI, OpenCode, Jarvis, and applications reach model services through LiteLLM. The gateway routes requests; the inference endpoints run the models." />
+        <figure class="ai-diagram-frame">
+          <AIWorkflowDiagram kind="overview" />
+          <figcaption>API requests flow toward the selected backend; responses return to the client. Endpoint availability depends on the loaded workload.</figcaption>
+        </figure>
+        <div class="grid md:grid-cols-3 gap-5 mt-8">
+          <article><h3 class="text-accent font-semibold text-lg mb-2">Hermes</h3><p class="text-slate leading-relaxed">A separate agent VM manages context, instructions, memory, and tool orchestration. Model calls are one step in that workflow.</p></article>
+          <article><h3 class="text-accent font-semibold text-lg mb-2">LiteLLM</h3><p class="text-slate leading-relaxed">The model gateway provides named routes and scoped API access. Inference stays on the selected vLLM backend, with SGLang also used in the serving stack.</p></article>
+          <article><h3 class="text-accent font-semibold text-lg mb-2">Open WebUI</h3><p class="text-slate leading-relaxed">Browser chat runs in its own LXC container and sends model requests through the gateway. Tailscale provides private connectivity to services.</p></article>
         </div>
 
-        <!-- GPU fleet -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12 reveal">
-          <DiagramNode tone="violet" variant="solid" glow={true} icon="🎛️" title="RTX 5090" sub="32 GB · Blackwell · Ollama" />
-          <DiagramNode tone="violet" variant="solid" icon="🖥️" title="RTX 4090" sub="24 GB · VFIO VM" />
-          <DiagramNode tone="violet" variant="solid" icon="⚡" title="2× DGX Spark" sub="clustered · 10 GbE" />
-          <DiagramNode tone="violet" icon="🎮" title="3080 / 3070 / 2×2060" sub="cluster GPUs · CI + compute" />
+        <div id="spark-cluster" class="mt-16 scroll-mt-24">
+          <SectionHeading eyebrow="Distributed inference / DGX Spark" title="Two Sparks." accent="One model deployment." description="The primary node hosts the vLLM API and coordinates distributed inference with the worker. LiteLLM sends client requests to the primary; the pair exchanges inference data over a separate high-speed link." />
+          <figure class="ai-diagram-frame">
+            <AIWorkflowDiagram kind="gb10" />
+            <figcaption>Cyan: client API traffic. Teal: the dedicated, bidirectional 200 Gb/s ConnectX-7 RoCE/RDMA link between the two Sparks.</figcaption>
+          </figure>
+          <div class="space-y-4 text-slate leading-relaxed max-w-3xl mt-8">
+            <p>Each Spark has <span class="text-accent font-semibold">128 GB of unified memory</span>, giving the pair
+            <span class="text-accent font-semibold">256 GB in aggregate</span>. Distributed serving assigns model work to both nodes;
+            the machines retain separate memory. Runtime overhead, model format, and context requirements determine usable capacity.</p>
+            <p>The <span class="text-accent font-semibold">ConnectX-7 connection is rated at 200 Gb/s</span>, or 25 GB/s before overhead.
+            RoCE carries RDMA traffic over Ethernet, and NCCL handles collective communication for distributed GPU work.
+            That dedicated path carries node-to-node exchanges while the regular network carries client requests and management traffic.
+            The rated link speed is separate from measured inference throughput.</p>
+            <p class="text-sm"><a class="link" href="https://docs.nvidia.com/dgx/dgx-spark/spark-clustering.html" target="_blank" rel="noopener noreferrer">NVIDIA’s ConnectX-7 networking reference ↗</a></p>
+          </div>
         </div>
 
-        <!-- vLLM tensor parallel across hosts -->
-        <div class="reveal">
-          <DiagramFrame tone="violet" eyebrow="Scale-out serving" title="vLLM · Tensor Parallel Across Two Hosts">
-            <DiagramLane label="One model, sharded" tone="violet" cols={1} connector={true}>
-              <DiagramNode tone="violet" icon="🧩" title="vLLM · tensor parallelism"
-                sub="weights split across devices on separate systems" />
-            </DiagramLane>
-            <DiagramLane label="GPU pool" tone="violet" cols={2} connector={true}>
-              <DiagramNode tone="violet" variant="solid" icon="🎛️" title="Host A · RTX 5090" sub="32 GB · Blackwell" />
-              <DiagramNode tone="violet" variant="solid" icon="🖥️" title="Host B · RTX 4090" sub="24 GB · VFIO guest" />
-            </DiagramLane>
-            <DiagramLane label="Exposed as" tone="violet" cols={1}>
-              <DiagramNode tone="teal" variant="solid" glow={true} icon="🔗" title="OpenAI-compatible /v1"
-                sub="runs models no single card here could hold" />
-            </DiagramLane>
-            <Fragment slot="legend">
-              <span>This is model parallelism over the LAN, not pooled NVLink memory.</span>
-            </Fragment>
-          </DiagramFrame>
-        </div>
-
-        <!-- DGX Spark cluster -->
-        <div class="mt-10 reveal">
-          <DiagramFrame tone="violet" eyebrow="High-throughput" title="2× DGX Spark Cluster">
-            <DiagramLane label="Clustered nodes" tone="violet" cols={2} connector={true}>
-              <DiagramNode tone="violet" variant="solid" icon="⚡" title="DGX Spark #1" sub="10 GbE interconnect" />
-              <DiagramNode tone="violet" variant="solid" icon="⚡" title="DGX Spark #2" sub="10 GbE interconnect" />
-            </DiagramLane>
-            <DiagramLane label="Serving" tone="violet" cols={1}>
-              <DiagramNode tone="teal" variant="solid" glow={true} icon="📈" title="vLLM batch serving"
-                sub="tensor-parallel · concurrent high-throughput workloads" />
-            </DiagramLane>
-          </DiagramFrame>
-        </div>
-
-        <!-- Hermes harness -->
-        <div class="mt-10 reveal">
-          <DiagramFrame tone="violet" eyebrow="Harness engineering" title="Hermes · Provider-Agnostic Agent Loop">
-            <DiagramLane label="Ordered fallback chain" tone="violet" cols={3} connector={true}>
-              <DiagramNode tone="violet" variant="solid" icon="①" title="Anthropic" sub="primary frontier brain" />
-              <DiagramNode tone="violet" icon="②" title="OpenAI" sub="second cloud model" />
-              <DiagramNode tone="violet" icon="③" title="Ollama (local)" sub="qwen3-coder:30b · zero-cost last resort" />
-            </DiagramLane>
-            <DiagramLane label="Durable harness (survives provider swaps)" tone="violet" cols={2}>
-              <DiagramNode tone="amber" icon="🧠" title="Bounded memory" sub="working set + FTS5 session archive" />
-              <DiagramNode tone="amber" icon="📚" title="Skills" sub="writes reusable procedures → compounds" />
-            </DiagramLane>
-            <Fragment slot="legend">
-              <span>Memory + skills live outside the model, so providers swap without losing state.</span>
-            </Fragment>
-          </DiagramFrame>
-        </div>
-
-        <!-- OpenAI-compatible fanout -->
-        <div class="mt-10 reveal">
-          <DiagramFrame tone="violet" eyebrow="One API, many clients" title="OpenAI-Compatible Fanout">
-            <DiagramLane label="Clients" tone="violet" cols={3} connector={true}>
-              <DiagramNode tone="violet" icon="🛠️" title="Claude Code / Codex" sub="agentic dev" />
-              <DiagramNode tone="violet" icon="💻" title="OpenCode" sub="points at local /v1" />
-              <DiagramNode tone="violet" icon="🔄" title="n8n" sub="inference as a workflow step" />
-            </DiagramLane>
-            <DiagramLane label="Endpoints (same client code)" tone="violet" cols={3}>
-              <DiagramNode tone="teal" icon="🏠" title="Local GPUs" sub="Ollama · vLLM" />
-              <DiagramNode tone="teal" icon="⚡" title="DGX cluster" sub="batch serving" />
-              <DiagramNode tone="teal" icon="☁️" title="Frontier APIs" sub="burst only" />
-            </DiagramLane>
-          </DiagramFrame>
-        </div>
-
-        <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
-          <p>
-            The daily driver is an <span class="text-slate-light">RTX 5090</span> running native
-            <span class="text-slate-light">ollama-cuda</span> with flash attention and a q8_0 KV cache,
-            which keeps a full 64k-token context resident on the card. When a model is too large for a
-            single GPU, <span class="text-slate-light">vLLM tensor parallelism</span> shards the weights
-            across the 5090 and a VFIO-passthrough 4090 on a separate host, and the same approach scales
-            out to a pair of clustered <span class="text-slate-light">DGX Spark</span> units over 10 GbE
-            for high-throughput batch serving.
-          </p>
-          <p>
-            Every endpoint speaks the same <span class="text-slate-light">OpenAI-compatible API</span>,
-            so the same client code points at a local card, the cluster, or a frontier provider without
-            changing a line. On top of that runs <span class="text-slate-light">Hermes</span>, where the
-            harness of instructions, bounded memory, tool orchestration, and a skills loop matters more
-            than any single model. An ordered fallback chain keeps work moving when an API is down, and
-            because memory and skills live outside the model, providers are swappable without losing a
-            thing.
-          </p>
+        <div class="mt-16">
+          <SectionHeading eyebrow="Agent execution" title="Inference is" accent="one step in the work." description="Hermes assembles context, calls the model through LiteLLM, and handles the next action. Tool permissions and approvals govern execution; results return to the agent for the next step." />
+          <figure class="ai-diagram-frame"><AIWorkflowDiagram kind="agent" /><figcaption>Model responses inform the workflow. Tool execution remains controlled by the agent and integration layer.</figcaption></figure>
+          <p class="text-slate leading-relaxed max-w-3xl mt-6">ComfyUI provides the separate image and video workflow layer, while n8n connects scheduled jobs and service integrations. These workloads use the same broader infrastructure without making every task an LLM request.</p>
+          <a href="/ai" class="link inline-block mt-5">Explore the daily AI workflow →</a>
         </div>
       </div>
     </section>
@@ -1021,7 +935,7 @@ const domains = [
           <p class="text-slate-light text-sm max-w-3xl mx-auto leading-relaxed">
             🔗 All infra control-plane comms (CrowdSec LAPI, Wazuh manager &amp; indexer, Grafana,
             Prometheus, and SSH) ride the Tailscale mesh with strict ACLs and per-session SSH auth.
-            Hosts firewall with <span class="text-slate-light">nftables</span>, SSH is key-only, and the
+            Hosts firewall with <span class="text-accent font-semibold">nftables</span>, SSH is key-only, and the
             only deliberate public surfaces are the threat-feed endpoint, the isolated Kasm VM, and the
             ScreenConnect session relay. Every admin console stays on the tailnet.
           </p>
@@ -1029,18 +943,18 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            Security runs as a <span class="text-slate-light">distributed CrowdSec</span> deployment:
+            Security runs as a <span class="text-accent font-semibold">distributed CrowdSec</span> deployment:
             log processors across the hosts and edge parse logs and ship alerts to a central
-            <span class="text-slate-light">LAPI</span>, a Postgres-backed, LAPI-only Security Engine
+            <span class="text-accent font-semibold">LAPI</span>, a Postgres-backed, LAPI-only Security Engine
             that is the single source of truth, while bouncers query it for decisions. Because the
             processors don't talk to each other, the central API is what makes a detection on one box
             actionable everywhere, and all of that traffic stays on Tailscale.
           </p>
           <p>
             The engine's full decision union (local bans plus the CAPI community feed and console lists,
-            around 75k entries) is mirrored on the public <span class="text-slate-light">thallium</span>
+            around 75k entries) is mirrored on the public <span class="text-accent font-semibold">thallium</span>
             box and served as a plaintext list at
-            <span class="text-slate-light">threat.cktechnology.io/crowdsec.txt</span>, which the
+            <span class="text-accent font-semibold">threat.cktechnology.io/crowdsec.txt</span>, which the
             FortiGate pulls in as an external threat feed and enforces with a DENY policy. An attack on
             the public Azure website is reported by its bouncer, lands in the feed, and is blocked at the
             perimeter for every other service, closing the detection-to-enforcement loop. DNS is just as
@@ -1122,19 +1036,19 @@ const domains = [
 
         <div class="space-y-4 text-slate leading-relaxed max-w-3xl mx-auto mt-10">
           <p>
-            <span class="text-slate-light">Heimdall</span> runs two independent pipelines. Logs flow
-            through a native <span class="text-slate-light">syslog-ng</span> that tags each stream with
-            low-cardinality labels and pushes to <span class="text-slate-light">Loki</span> over HTTP,
+            <span class="text-accent font-semibold">Heimdall</span> runs two independent pipelines. Logs flow
+            through a native <span class="text-accent font-semibold">syslog-ng</span> that tags each stream with
+            low-cardinality labels and pushes to <span class="text-accent font-semibold">Loki</span> over HTTP,
             while also writing a raw file archive as a redundant copy; FortiGate gets a dedicated port
             and its key=value logs are parsed at query time with LogQL. Metrics are pull-based:
-            <span class="text-slate-light">Prometheus</span> scrapes node_exporter, cAdvisor, and the
+            <span class="text-accent font-semibold">Prometheus</span> scrapes node_exporter, cAdvisor, and the
             Proxmox and edge hosts via file-based service discovery, so adding a target is a file edit
             and a hot reload, with alerts routed through Alertmanager.
           </p>
           <p>
             Security telemetry rides alongside as read-only overlays, with CrowdSec LAPI metrics feeding
             Prometheus and the Wazuh indexer mounted as an OpenSearch datasource, so a single
-            <span class="text-slate-light">Grafana</span> instance covers host health, cluster capacity,
+            <span class="text-accent font-semibold">Grafana</span> instance covers host health, cluster capacity,
             firewall traffic, and MITRE-mapped detections. Like the rest of the management plane, every
             piece of it is reachable only over Tailscale.
           </p>
@@ -1216,3 +1130,9 @@ const domains = [
     </p>
   </footer>
 </BaseLayout>
+
+<style>
+  .ai-diagram-frame { background:var(--color-navy); border:1px solid var(--color-slate-dark); border-radius:0.75rem; padding:1.25rem; }
+  .ai-diagram-frame figcaption { color:var(--color-slate); font-size:0.8125rem; line-height:1.7; padding-top:1rem; border-top:1px solid var(--color-slate-dark); }
+  @media(max-width:767px) { .ai-diagram-frame { padding:0.75rem; } }
+</style>

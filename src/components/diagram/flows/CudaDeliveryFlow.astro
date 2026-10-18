@@ -20,7 +20,7 @@ const N: Record<string, FlowNode> = {
   VMECH: { x: 360, y: 158, w: 250, title: 'Guest CUDA stack', subs: ['driver inside the VM', 'same as bare-metal'] },
   CT: { x: 24, y: 272, w: 220, title: 'Container', subs: ['Docker / Podman', 'rootless'], node: '#3b82f6' },
   CMECH: { x: 360, y: 272, w: 250, title: 'NVIDIA Container Toolkit', subs: ['injects GPU + libs', 'no driver in image'] },
-  FW: { x: 770, y: 158, w: 220, title: 'CUDA frameworks', subs: ['PyTorch · vLLM', 'Ollama · nvcc'], node: '#64ffda', glow: true },
+  FW: { x: 770, y: 158, w: 220, title: 'CUDA workloads', subs: ['PyTorch · vLLM', 'SGLang · ComfyUI'], node: '#64ffda', glow: true },
 };
 
 const lineH = 13;
@@ -68,7 +68,7 @@ const chip = (e: FlowEdge) => {
       The same NVIDIA driver and CUDA toolkit reaches workloads three ways: bare-metal on the Arch
       desktop, inside a VFIO passthrough guest VM (the same mechanism Looking Glass uses), and inside
       containers via the NVIDIA Container Toolkit. All three paths converge on the same frameworks:
-      PyTorch, vLLM, Ollama, and nvcc.
+      PyTorch, vLLM, SGLang, and ComfyUI.
     </desc>
     <defs>
       <marker id="arrow-cuda-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" aria-hidden="true">
